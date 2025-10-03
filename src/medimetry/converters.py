@@ -5,37 +5,37 @@ from datetime import datetime
 
 def umoll2mgdl(umoll: float) -> float:
     """
-    Convert umol/L to mg/dL.
+    Convert umol/L to mg/dl.
 
     Args:
         umoll (float): Concentration in umol/L
 
     Returns:
-        float: Concentration in mg/dL
+        float: Concentration in mg/dl
     """
     # assert that umoll is not infinitive
     if umoll == float("inf"):
-        raise ValueError("Cannot convert infinity to mg/dL")
+        raise ValueError("Cannot convert infinity to mg/dl")
     if umoll == float("-inf"):
-        raise ValueError("Cannot convert negative infinity to mg/dL")
+        raise ValueError("Cannot convert negative infinity to mg/dl")
 
     return umoll * 18.01528  # 18.01528 mg/mol
 
 
 def mgdl2umoll(mgdl: float) -> float:
     """
-    Convert mg/dL to umol/L.
+    Convert mg/dl to umol/L.
 
     Args:
-        mgdl (float): Concentration in mg/dL
+        mgdl (float): Concentration in mg/dl
 
     Returns:
         float: Concentration in umol/L
     """
     if mgdl == float("inf"):
-        raise ValueError("Cannot convert infinity to mg/dL")
+        raise ValueError("Cannot convert infinity to mg/dl")
     if mgdl == float("-inf"):
-        raise ValueError("Cannot convert negative infinity to mg/dL")
+        raise ValueError("Cannot convert negative infinity to mg/dl")
     return mgdl / 18.01528  # 18.01528 mg/mol
 
 

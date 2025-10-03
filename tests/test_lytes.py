@@ -4,7 +4,7 @@ from medimetry.cardio import calcium_correction
 
 
 def test_calcium_correction_albumin_exactly_four():
-    """Test that corrected calcium equals total calcium when albumin is exactly 4.0 g/dL."""
+    """Test that corrected calcium equals total calcium when albumin is exactly 4.0 g/dl."""
 
     # When albumin is exactly 4.0, the correction factor should be 0
     # Corrected Ca = Total Ca + 0.8 x (4.0 - 4.0) = Total Ca + 0
@@ -16,7 +16,7 @@ def test_calcium_correction_albumin_exactly_four():
 
 
 def test_calcium_correction_albumin_below_four():
-    """Test that corrected calcium is higher than total calcium when albumin is below 4.0 g/dL (hypoalbuminemia)."""
+    """Test that corrected calcium is higher than total calcium when albumin is below 4.0 g/dl (hypoalbuminemia)."""
 
     # When albumin is below 4.0, the correction factor should be positive
     # Corrected Ca = Total Ca + 0.8 x (4.0 - 3.0) = Total Ca + 0.8
@@ -30,7 +30,7 @@ def test_calcium_correction_albumin_below_four():
 
 
 def test_calcium_correction_albumin_above_four():
-    """Test that corrected calcium is lower than total calcium when albumin is above 4.0 g/dL (hyperalbuminemia)."""
+    """Test that corrected calcium is lower than total calcium when albumin is above 4.0 g/dl (hyperalbuminemia)."""
 
     # When albumin is above 4.0, the correction factor should be negative
     # Corrected Ca = Total Ca + 0.8 x (4.0 - 5.0) = Total Ca - 0.8

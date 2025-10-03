@@ -89,11 +89,11 @@ def calcium_correction(total_calcium: float, albumin: float) -> float:
     Uses the formula: Corrected Ca = Total Ca + 0.8 x (4.0 - Albumin)
 
     Args:
-        total_calcium (float): Total serum calcium in mg/dL
-        albumin (float): Serum albumin in g/dL
+        total_calcium (float): Total serum calcium in mg/dl
+        albumin (float): Serum albumin in g/dl
 
     Returns:
-        float: Corrected calcium in mg/dL
+        float: Corrected calcium in mg/dl
 
     Raises:
         ValueError: If calcium or albumin values are negative

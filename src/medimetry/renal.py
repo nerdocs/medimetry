@@ -9,7 +9,7 @@ def cockcroft_gault(age: int, weight: float, creatinine: float, sex: Sex, height
     Args:
         age (int): Age in years
         weight (float): Weight in kg
-        creatinine (float): Serum creatinine in mg/dL
+        creatinine (float): Serum creatinine in mg/dl
         sex (str): Sex ("male" or "female")
         height (float, optional): Height in cm (not used in standard formula)
 
@@ -38,7 +38,7 @@ def mdrd(creatinine: float, age: int, sex: Sex, race: EthnicalRace = EthnicalRac
     Calculate eGFR using MDRD (Modification of Diet in Renal Disease) formula.
 
     Args:
-        creatinine (float): Serum creatinine in mg/dL
+        creatinine (float): Serum creatinine in mg/dl
         age (int): Age in years
         sex (str): Sex ("m" or "f")
         race (str): Race ("african_american" or "other")
@@ -69,7 +69,7 @@ def ckd_epi(creatinine: float, age: int, sex: Sex, race: EthnicalRace = Ethnical
     Calculate eGFR using CKD-EPI (Chronic Kidney Disease Epidemiology Collaboration) formula.
 
     Args:
-        creatinine (float): Serum creatinine in mg/dL
+        creatinine (float): Serum creatinine in mg/dl
         age (int): Age in years
         sex (Sex): Sex (Sex.MALE or Sex.FEMALE)
         race (EthnicalRace): Race (EthnicalRace.AFRICAN_AMERICAN or EthnicalRace.OTHER)

@@ -4,28 +4,28 @@ from medimetry.converters import umoll2mgdl
 
 
 def test_umoll2mgdl_zero():
-    """Test that zero umol/L converts to zero mg/dL."""
+    """Test that zero umol/L converts to zero mg/dl."""
 
     result = umoll2mgdl(0.0)
     assert result == 0.0
 
 
 def test_umoll2mgdl_positive_integer():
-    """Test that positive integer umol/L values convert to correct mg/dL."""
+    """Test that positive integer umol/L values convert to correct mg/dl."""
 
     result = umoll2mgdl(100)
     assert result == 1801.528
 
 
 def test_umoll2mgdl_positive_decimal():
-    """Test that positive decimal umol/L values convert to correct mg/dL."""
+    """Test that positive decimal umol/L values convert to correct mg/dl."""
 
     result = umoll2mgdl(88.4)
     assert result == 1592.5507520000001
 
 
 def test_umoll2mgdl_negative_value():
-    """Test that negative umol/L values convert to negative mg/dL."""
+    """Test that negative umol/L values convert to negative mg/dl."""
 
     result = umoll2mgdl(-50.0)
     assert result == -900.764
@@ -62,16 +62,16 @@ def test_umoll2mgdl_clinical_glucose_range():
 
 
 def test_umoll2mgdl_infinity():
-    """Test that infinity umol/L values convert to infinity mg/dL."""
+    """Test that infinity umol/L values convert to infinity mg/dl."""
 
-    with pytest.raises(ValueError, match="Cannot convert infinity to mg/dL"):
+    with pytest.raises(ValueError, match="Cannot convert infinity to mg/dl"):
         umoll2mgdl(float("inf"))
 
 
 def test_umoll2mgdl_negative_infinity():
-    """Test that negative infinity umol/L values convert to negative infinity mg/dL."""
+    """Test that negative infinity umol/L values convert to negative infinity mg/dl."""
 
-    with pytest.raises(ValueError, match="Cannot convert negative infinity to mg/dL"):
+    with pytest.raises(ValueError, match="Cannot convert negative infinity to mg/dl"):
         umoll2mgdl(float("-inf"))
 
 
