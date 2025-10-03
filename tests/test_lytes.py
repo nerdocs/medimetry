@@ -1,6 +1,6 @@
 import pytest
 
-from medimetry.cardio import calcium_correction
+from medimetry.cardiovasc import calcium_correction
 
 
 def test_calcium_correction_albumin_exactly_four():

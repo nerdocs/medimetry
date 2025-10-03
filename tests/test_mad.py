@@ -1,6 +1,6 @@
 import pytest
 
-from medimetry.cardio import mean_arterial_pressure
+from medimetry.cardiovasc import mean_arterial_pressure
 
 
 def test_mean_arterial_pressure_normal_values():
