@@ -80,3 +80,29 @@ def chads_vasc_score(
         score += 2
 
     return score
+
+
+def calcium_correction(total_calcium: float, albumin: float) -> float:
+    """
+    Calculate corrected calcium for hypo-/hyperalbuminemia.
+
+    Uses the formula: Corrected Ca = Total Ca + 0.8 x (4.0 - Albumin)
+
+    Args:
+        total_calcium (float): Total serum calcium in mg/dL
+        albumin (float): Serum albumin in g/dL
+
+    Returns:
+        float: Corrected calcium in mg/dL
+
+    Raises:
+        ValueError: If calcium or albumin values are negative
+    """
+    normal_calcium = 4.0
+    if total_calcium < 0:
+        raise ValueError("Total calcium must be non-negative")
+    if albumin < 0:
+        raise ValueError("Albumin must be non-negative")
+
+    corrected_calcium = total_calcium + 0.8 * (normal_calcium - albumin)
+    return round(corrected_calcium, 2)
