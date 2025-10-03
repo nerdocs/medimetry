@@ -1,0 +1,22 @@
+graft docs
+graft src
+graft ci
+graft tests
+
+include .coveragerc
+include .editorconfig
+include .github/workflows/github-actions.yml
+include .pre-commit-config.yaml
+include .taplo.toml
+include pyproject.toml
+include pytest.ini
+include tbump.toml
+include tox.ini
+
+include AUTHORS.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include LICENSE
+include README.md
+
+global-exclude *.py[cod] __pycache__/* *.so *.dylib
