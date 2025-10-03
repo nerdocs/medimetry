@@ -80,7 +80,7 @@ PYTEST_ADDOPTS=--cov-append tox
 | Endocrine / Body Metrics                            | | BMI and BSA                                        | Body mass and surface area                         |
 |                                                     | | Ideal & Adjusted Body Weight                       | Weight assessment for dosing/therapy               |
 |                                                     | | Maintenance Fluids Calculations                    | Calculate fluid needs                              |
-| Cardiac / ECG                                       | | Corrected QT Interval (QTc)                        | Correct QT for heart rate extremes                 |
+| Cardiac / ECG  (**cardiac**)                        | | Corrected QT Interval (QTc)                        | Correct QT for heart rate extremes                 |
 | Psychiatric / Neuropsychiatric                      | | PHQ-9                                              | Depression severity                                |
 |                                                     | | GAD-7                                              | Anxiety severity                                   |
 |                                                     | | CIWA-Ar                                            | Alcohol withdrawal severity                        |

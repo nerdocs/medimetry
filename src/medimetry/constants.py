@@ -11,3 +11,10 @@ class EthnicalRace(Enum):
     AFRICAN_AMERICAN = "african_american"
     EUROPEAN = "european"
     OTHER = "other"
+
+
+class QtcCorrectionType(Enum):
+    BAZETT = "bazett"
+    FRIDERICIA = "fridericia"
+    FRAMINGHAM = "framingham"
+    HODGES = "hodges"
