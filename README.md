@@ -52,7 +52,7 @@ PYTEST_ADDOPTS=--cov-append tox
 |                                    |   | Fractional Excretion of Sodium (FENa)              | Differentiate renal failure type                   |
 | Electrolytes                                    |   | Sodium Correction for Hyperglycemia                | Correct Na in hyperglycemia                        |
 |                                     |   | Serum Osmolality/Osmolarity                        | Detect unmeasured serum compounds                  |
-|                                     |   | Calcium Correction for Hypo-/Hyperalbuminemia      | Correct serum calcium                              |
+|                                     | ✓ | Calcium Correction for Hypo-/Hyperalbuminemia      | Correct serum calcium                              |
 |                                     |   | Free Water Deficit in Hypernatremia                | Guide rehydration therapy                          |
 | Cardiovascular Risk / Hemodynamics  |   | Mean Arterial Pressure (MAP)                       | Assess perfusion pressure                          |
 |                                     | ✓ | CHA₂DS₂-VASc Score                                 | Stroke risk in atrial fibrillation                 |
