@@ -18,7 +18,7 @@ pip install medimetry
 
 You can also install the in-development version with::
 
-    pip install https://github.com/nerdocs/medimetry/-/archive/main/python-medimetry-main.zip
+    pip install https://github.com/nerdocs/medimetry/-/archive/main/medimetry-main.zip
 
 
 ## Development
