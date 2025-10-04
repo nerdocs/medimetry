@@ -20,3 +20,4 @@ include LICENSE
 include README.md
 
 global-exclude *.py[cod] __pycache__/* *.so *.dylib
+exclude scripts/update_tables.py
