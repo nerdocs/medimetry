@@ -1,4 +1,4 @@
-from medimetry import Sex
+from medimetry import Gender
 
 
 def mean_arterial_pressure(systolic: int, diastolic: int) -> float:
@@ -27,7 +27,7 @@ def mean_arterial_pressure(systolic: int, diastolic: int) -> float:
 
 def chads_vasc_score(
     age: int,
-    sex: Sex,
+    gender: Gender,
     chf: bool = False,
     hypertension: bool = False,
     stroke_vascular_history: bool = False,
@@ -39,7 +39,7 @@ def chads_vasc_score(
 
     Args:
         age (int): Age in years
-        sex (Sex): Sex (Sex.MALE or Sex.FEMALE)
+        gender (Gender): Gender (Gender.MALE or Gender.FEMALE)
         chf (bool): Congestive heart failure/LV dysfunction
         hypertension (bool): Hypertension
         stroke_vascular_history (bool): Stroke/TIA/thromboembolism history
@@ -51,7 +51,10 @@ def chads_vasc_score(
     """
     if age <= 0:
         raise ValueError("Age must be non-negative")
-    assert sex in (Sex.MALE, Sex.FEMALE), "Sex must be Sex.MALE or Sex.FEMALE"
+    assert gender in (
+        Gender.MALE,
+        Gender.FEMALE,
+    ), "Gender must be Gender.MALE or Gender.FEMALE"
 
     score = 0
 
@@ -61,8 +64,8 @@ def chads_vasc_score(
     elif age >= 65:
         score += 1
 
-    # Sex category (female)
-    if sex == Sex.FEMALE:
+    # Gender category - female?
+    if gender == Gender.FEMALE:
         score += 1
 
     # Clinical factors (1 point each)

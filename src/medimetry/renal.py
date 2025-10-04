@@ -1,8 +1,14 @@
 from medimetry.constants import EthnicalRace
-from medimetry.constants import Sex
+from medimetry.constants import Gender
 
 
-def cockcroft_gault(age: int, weight: float, creatinine: float, sex: Sex, height: float | None = None) -> int:
+def cockcroft_gault(
+    age: int,
+    weight: float,
+    creatinine: float,
+    gender: Gender,
+    height: float | None = None,
+) -> int:
     """
     Calculate creatinine clearance using Cockcroft-Gault formula.
 
@@ -10,7 +16,7 @@ def cockcroft_gault(age: int, weight: float, creatinine: float, sex: Sex, height
         age (int): Age in years
         weight (float): Weight in kg
         creatinine (float): Serum creatinine in mg/dl
-        sex (str): Sex ("male" or "female")
+        gender (str): Gender (MALE or FEMALE)
         height (float, optional): Height in cm (not used in standard formula)
 
     Returns:
@@ -20,27 +26,27 @@ def cockcroft_gault(age: int, weight: float, creatinine: float, sex: Sex, height
     assert weight < 400, "Weight must be less than 400 kg"
     assert age > 0, "Age must be positive"
     assert creatinine >= 0, "Creatinine must be non-negative"
-    assert sex in (Sex.MALE, Sex.FEMALE), "Sex must be 'm' or 'f'"
+    assert gender in (Gender.MALE, Gender.FEMALE), "Gender must be MALE or FEMALE"
     assert height is None or (0 < height < 150), "Height must be positive and less than 150 cm"
 
     # Base calculation: ((140 - age) * weight) / (72 * creatinine)
     clearance = ((140 - age) * weight) / (72 * creatinine)
 
     # Apply sex correction factor
-    if sex == Sex.FEMALE:
+    if gender == Gender.FEMALE:
         clearance *= 0.85
 
     return round(clearance)
 
 
-def mdrd(creatinine: float, age: int, sex: Sex, race: EthnicalRace = EthnicalRace.OTHER) -> float:
+def mdrd(creatinine: float, age: int, sex: Gender, race: EthnicalRace = EthnicalRace.OTHER) -> float:
     """
     Calculate eGFR using MDRD (Modification of Diet in Renal Disease) formula.
 
     Args:
         creatinine (float): Serum creatinine in mg/dl
         age (int): Age in years
-        sex (str): Sex ("m" or "f")
+        sex (str): Gender (MALE or FEMALE)
         race (str): Race ("african_american" or "other")
 
     Returns:
@@ -48,13 +54,16 @@ def mdrd(creatinine: float, age: int, sex: Sex, race: EthnicalRace = EthnicalRac
     """
     assert creatinine > 0, "Creatinine must be positive"
     assert age > 0, "Age must be positive"
-    assert sex in (Sex.MALE, Sex.FEMALE), "Sex must be Sex.MALE|Sex.FEMALE"
+    assert sex in (
+        Gender.MALE,
+        Gender.FEMALE,
+    ), "Gender must be Gender.MALE|Gender.FEMALE"
 
     # Base MDRD formula: 175 x (creatinine)^-1.154 x (age)^-0.203
     egfr = 175 * (creatinine**-1.154) * (age**-0.203)
 
     # Apply sex correction factor
-    if sex == Sex.FEMALE:
+    if sex == Gender.FEMALE:
         egfr *= 0.742
 
     # Apply race correction factor
@@ -64,14 +73,14 @@ def mdrd(creatinine: float, age: int, sex: Sex, race: EthnicalRace = EthnicalRac
     return egfr
 
 
-def ckd_epi(creatinine: float, age: int, sex: Sex, race: EthnicalRace = EthnicalRace.OTHER) -> float:
+def ckd_epi(creatinine: float, age: int, sex: Gender, race: EthnicalRace = EthnicalRace.OTHER) -> float:
     """
     Calculate eGFR using CKD-EPI (Chronic Kidney Disease Epidemiology Collaboration) formula.
 
     Args:
         creatinine (float): Serum creatinine in mg/dl
         age (int): Age in years
-        sex (Sex): Sex (Sex.MALE or Sex.FEMALE)
+        sex (Gender): Gender (Gender.MALE or Gender.FEMALE)
         race (EthnicalRace): Race (EthnicalRace.AFRICAN_AMERICAN or EthnicalRace.OTHER)
 
     Returns:
@@ -79,10 +88,13 @@ def ckd_epi(creatinine: float, age: int, sex: Sex, race: EthnicalRace = Ethnical
     """
     assert creatinine > 0, "Creatinine must be positive"
     assert age > 0, "Age must be positive"
-    assert sex in (Sex.MALE, Sex.FEMALE), "Sex must be Sex.MALE|Sex.FEMALE"
+    assert sex in (
+        Gender.MALE,
+        Gender.FEMALE,
+    ), "Gender must be Gender.MALE|Gender.FEMALE"
 
     # Define kappa and alpha based on sex
-    if sex == Sex.FEMALE:
+    if sex == Gender.FEMALE:
         kappa = 0.7
         alpha = -0.329
         sex_factor = 1.018
