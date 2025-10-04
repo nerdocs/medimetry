@@ -77,7 +77,7 @@ PYTEST_ADDOPTS=--cov-append tox
 |                                                     | ✅ | Glasgow Coma Scale (GCS)                          | Coma severity assessment                       |
 |                                                     |   | PECARN Pediatric Head Injury                      | Brain imaging need after pediatric head injury |
 |                                                     |   | CURB-65 Score                                     | Pneumonia severity & mortality                 |
-| Endocrine / Body Metrics                            |   | BMI and BSA                                       | Body mass and surface area                     |
+| Body Metrics                                        | ✅ | BMI and BSA                                       | Body mass and surface area                     |
 |                                                     |   | Ideal & Adjusted Body Weight                      | Weight assessment for dosing/therapy           |
 |                                                     |   | Maintenance Fluids Calculations                   | Calculate fluid needs                          |
 | Cardiac / ECG  (**cardiac**)                        | ✅ | Corrected QT Interval (QTc)                       | Correct QT for heart rate extremes             |
