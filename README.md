@@ -73,8 +73,8 @@ PYTEST_ADDOPTS=--cov-append tox
 |                                                     |   | PERC Rule                                         | Rule out PE                                    |
 |                                                     |   | Wells’ Criteria for DVT                           | DVT risk assessment                            |
 |                                                     |   | STOP-BANG Score                                   | Obstructive sleep apnea screening              |
-| Neurological / Stroke / Consciousness               |   | NIH Stroke Scale (NIHSS)                          | Stroke severity & monitoring                   |
-|                                                     | f | Glasgow Coma Scale (GCS)                          | Coma severity assessment                       |
+| Neurological / Stroke / Consciousness (**neuro**)   |   | NIH Stroke Scale (NIHSS)                          | Stroke severity & monitoring                   |
+|                                                     | ✅ | Glasgow Coma Scale (GCS)                          | Coma severity assessment                       |
 |                                                     |   | PECARN Pediatric Head Injury                      | Brain imaging need after pediatric head injury |
 |                                                     |   | CURB-65 Score                                     | Pneumonia severity & mortality                 |
 | Endocrine / Body Metrics                            |   | BMI and BSA                                       | Body mass and surface area                     |
