@@ -10,6 +10,12 @@ def test_umoll2mgdl_zero():
     assert result == 0.0
 
 
+def test_umoll2mgdl_zero_value():
+    """Test conversion with zero umol/L value."""
+    result = umoll2mgdl(0.0)
+    assert result == 0.0
+
+
 def test_umoll2mgdl_positive_integer():
     """Test that positive integer umol/L values convert to correct mg/dl."""
 
