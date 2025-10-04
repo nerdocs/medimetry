@@ -23,24 +23,8 @@ You can also install the in-development version with::
 
 ## Development
 
-To install the git pre-commit hooks run:
-```bash
-pre-commit install --install-hooks
-# To update the versions:
-pre-commit autoupdate
-```
+See [Contributing](CONTRIBUTING.md).
 
-To run all the tests run::
-
-```bash
-tox
-```
-
-Note, to combine the coverage data from all the tox environments run:
-
-```bash
-PYTEST_ADDOPTS=--cov-append tox
-```
 
 ## Medical Tests Reference Table
 

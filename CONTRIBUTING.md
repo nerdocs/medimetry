@@ -31,28 +31,39 @@ To set up `medimetry` for local development:
 
 1. Fork [medimetry](https://github.com/nerdocs/medimetry) (look for the "Fork" button).
 2. Clone your fork locally:
-   ```bash
-   git clone git@github.com:YOURUSERNAME/medimetry.git
-   ```
+    ```bash
+    git clone git@github.com:YOURUSERNAME/medimetry.git
+    ```
+
+To install the git pre-commit hooks run:
+    ```bash
+    pre-commit install --install-hooks
+    pre-commit autoupdate
+    ```
 
 3. Create a branch for local development:
-   ```bash
-   git checkout -b name-of-your-bugfix-or-feature
-   ```
+    ```bash
+    git checkout -b name-of-your-bugfix-or-feature
+    ```
 
    Now you can make your changes locally.
 
 4. When you're done making changes run all the checks and docs builder with one command:
-   ```bash
-   tox
-   ```
+    ```bash
+    tox
+    ```
 
-5. Commit your changes and push your branch to GitHub:
-   ```bash
-   git add .
-   git commit -m "Your detailed description of your changes."
-   git push origin name-of-your-bugfix-or-feature
-   ```
+Note, to combine the coverage data from all the tox environments run:
+    ```bash
+    PYTEST_ADDOPTS=--cov-append tox
+    ```
+
+6. Commit your changes and push your branch to GitHub:
+    ```bash
+    git add .
+    git commit -m "Your detailed description of your changes."
+    git push origin name-of-your-bugfix-or-feature
+    ```
 
 6. Submit a pull request through the GitHub website.
 
