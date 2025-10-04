@@ -43,7 +43,7 @@ requires-python = ">=3.11"
 dependencies = []
 
 [dependency-groups]
-dev = ["jinja2", "tox", { include-group = "test" }]
+dev = ["jinja2", "tox", "pandas", "openpyxl", { include-group = "test" }]
 test = ["pytest"]
 
 [project.urls]
