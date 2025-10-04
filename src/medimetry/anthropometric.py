@@ -66,7 +66,7 @@ def bmi_from_cm(weight: float, height_cm: float) -> float:
     """
     if height_cm <= 0:
         raise ValueError("Height must be positive")
-    if height_cm <= 0:
+    if height_cm <= 10:
         raise ValueError("Height must be above 10 centimeters (did you provide meters?)")
 
     height_m = height_cm / 100
