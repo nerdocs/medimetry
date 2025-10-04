@@ -174,3 +174,106 @@ def test_bsa_formula_consistency():
 
     # All formulas should be within reasonable range of each other
     assert (max_val - min_val) < 0.1, f"Formulas vary too much: {results}"
+
+
+def test_bsa_dubois_negative_weight():
+    """Test BSA DuBois calculation with negative weight."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_dubois(-70, 1.75)
+
+
+def test_bsa_dubois_zero_weight():
+    """Test BSA DuBois calculation with zero weight."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_dubois(0, 1.75)
+
+
+def test_bsa_dubois_negative_height():
+    """Test BSA DuBois calculation with negative height."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_dubois(70, -1.75)
+
+
+def test_bsa_dubois_zero_height():
+    """Test BSA DuBois calculation with zero height."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_dubois(70, 0)
+
+
+def test_bsa_haycock_negative_weight():
+    """Test BSA Haycock calculation with negative weight."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_haycock(-70, 1.75)
+
+
+def test_bsa_haycock_zero_weight():
+    """Test BSA Haycock calculation with zero weight."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_haycock(0, 1.75)
+
+
+def test_bsa_haycock_negative_height():
+    """Test BSA Haycock calculation with negative height."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_haycock(70, -1.75)
+
+
+def test_bsa_haycock_zero_height():
+    """Test BSA Haycock calculation with zero height."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_haycock(70, 0)
+
+
+def test_bsa_gehan_george_negative_weight():
+    """Test BSA Gehan-George calculation with negative weight."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_gehan_george(-70, 1.75)
+
+
+def test_bsa_gehan_george_zero_weight():
+    """Test BSA Gehan-George calculation with zero weight."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_gehan_george(0, 1.75)
+
+
+def test_bsa_gehan_george_negative_height():
+    """Test BSA Gehan-George calculation with negative height."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_gehan_george(70, -1.75)
+
+
+def test_bsa_gehan_george_zero_height():
+    """Test BSA Gehan-George calculation with zero height."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_gehan_george(70, 0)
+
+
+def test_bsa_boyd_negative_weight():
+    """Test BSA Boyd calculation with negative weight."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_boyd(-70, 1.75)
+
+
+def test_bsa_boyd_zero_weight():
+    """Test BSA Boyd calculation with zero weight."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_boyd(0, 1.75)
+
+
+def test_bsa_boyd_negative_height():
+    """Test BSA Boyd calculation with negative height."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_boyd(70, -1.75)
+
+
+def test_bsa_boyd_zero_height():
+    """Test BSA Boyd calculation with zero height."""
+    with pytest.raises(ValueError, match="Weight and height must be positive"):
+        bsa_boyd(70, 0)
+
+
+def test_bsa_unknown_formula():
+    """Test BSA calculation with unknown formula."""
+
+    with pytest.raises(ValueError, match="Unknown BSA formula"):
+        bsa(70, 1.75, "invalid formula")

@@ -196,3 +196,33 @@ def test_bmi_enum_values():
     assert BMICategory.OBESE_CLASS_I.value == "Obese Class I"
     assert BMICategory.OBESE_CLASS_II.value == "Obese Class II"
     assert BMICategory.OBESE_CLASS_III.value == "Obese Class III"
+
+
+def test_bmi_weight_too_high():
+    """Test BMI calculation with weight exceeding 300kg."""
+    with pytest.raises(ValueError, match="Weight must be lower than 300 kilograms"):
+        bmi(301, 1.80)
+
+    with pytest.raises(ValueError, match="Weight must be lower than 300 kilograms"):
+        bmi(350, 1.75)
+
+
+def test_bmi_height_too_high():
+    """Test BMI calculation with height exceeding 3 meters."""
+    with pytest.raises(ValueError, match="Height must be lower than 3 meters"):
+        bmi(70, 3.1)
+
+
+def test_bmi_from_cm_height_too_low():
+    """Test BMI calculation with height in cm too low."""
+    with pytest.raises(ValueError, match="Height must be above 10 centimeters"):
+        bmi_from_cm(70, 5)
+
+
+def test_bmi_category_zero_or_negative():
+    """Test BMI category with invalid BMI values."""
+    with pytest.raises(ValueError, match="BMI must be positive"):
+        bmi_category(0)
+
+    with pytest.raises(ValueError, match="BMI must be positive"):
+        bmi_category(-5.0)
