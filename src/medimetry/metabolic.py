@@ -55,9 +55,9 @@ def child_pugh_score(
     if inr < 0:
         raise ValueError("INR must be non-negative")
 
-    if ascites not in AscitesSeverity:
+    if not isinstance(ascites, AscitesSeverity):
         raise ValueError(f"Unsupported ascites severity: {ascites}")
-    if encephalopathy not in EncephalopathyGrade:
+    if not isinstance(encephalopathy, EncephalopathyGrade):
         raise ValueError(f"Unsupported encephalopathy grade: {encephalopathy}")
 
     score = 0
