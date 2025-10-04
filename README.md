@@ -65,7 +65,7 @@ PYTEST_ADDOPTS=--cov-append tox
 |                                                     | | ARISCAT Score                                      | Post-op pulmonary complications risk               |
 |                                                     | | Gupta MICA Score                                   | Post-op MI/cardiac arrest risk                     |
 | Liver / GI / Metabolic                              | | Fibrosis-4 (FIB-4) Index                           | Noninvasive liver fibrosis assessment              |
-|                                                     | | Child-Pugh Score                                   | Cirrhosis severity & mortality                     |
+|                                                     | ✓ | Child-Pugh Score                                   | Cirrhosis severity & mortality                     |
 |                                                     | | MELD Na                                            | End-stage liver disease & transplant planning      |
 |                                                     | | HOMA-IR                                            | Insulin resistance estimate                        |
 |                                                     | | Serum Anion Gap                                    | Metabolic acidosis evaluation                      |
