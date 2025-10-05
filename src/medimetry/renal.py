@@ -211,14 +211,15 @@ def ckd_stage(gfr: float, acr: float) -> tuple[str, str, int]:
             * risk of progression (1-4) = recommended checks per year. If this value
                     is 4, it is recommended to make *at least* 4 checks per year.
     """
-    alb_cat = 0
 
     if acr < 30:
         alb_cat = 1
-    elif 30 < acr <= 300:
+    elif 30 <= acr <= 300:
         alb_cat = 2
     elif acr > 300:
         alb_cat = 3
+    else:
+        raise ValueError("Unknown ACR value: {acr}")
 
     if gfr >= 90:
         gfr_category = "G1"
@@ -230,10 +231,10 @@ def ckd_stage(gfr: float, acr: float) -> tuple[str, str, int]:
         gfr_category = "G3b"
     elif 15 <= gfr < 30:
         gfr_category = "G4"
-    elif gfr < 15:
+    elif 0 < gfr < 15:
         gfr_category = "G5"
     else:
-        raise ValueError("Unknown GFR value: {gfr}")
+        raise ValueError(f"Invalid GFR value: {gfr}")
 
     #  e.g. ("G3a", "A2")
     return (
