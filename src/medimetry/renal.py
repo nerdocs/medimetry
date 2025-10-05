@@ -1,5 +1,24 @@
+from gettext import gettext as _
+
 from medimetry.constants import EthnicalRace
 from medimetry.constants import Gender
+
+
+def acr(albumin: float, creatinine: float):
+    """
+    Calculate Albumin-to-Creatinine Ratio (ACR) using the formula from the MDRD.
+
+    Args:
+        albumin (float): Albumin concentration in mg/dl
+        creatinine (float): Serum creatinine in mg/dl
+
+    Returns:
+        float: Albumin-to-Creatinine Ratio
+    """
+    assert albumin >= 0, "Albumin must not be negative"
+    assert creatinine > 0, "Creatinine must not positive"
+
+    return albumin / creatinine
 
 
 def cockcroft_gault(
@@ -155,3 +174,70 @@ def ckd_epi(creatinine: float, age: int, gender: Gender, cystatin_c: float | Non
             * (0.9961**age)
             * gender_factor
         )
+
+
+gfr_category_titles = {
+    "G1": _("Normal"),
+    "G2": _("Mildly decreased"),
+    "G3d": _("Mildly to moderately decreased"),
+    "G3b": _("Moderately to severely decreased"),
+    "G4": _("Severely decreased"),
+    "G5": _("Kidney failure"),
+}
+
+ckd_progression_matrix = {
+    # This represents the risk progression and suggested checks per year depending on
+    # GFR category and ACR.
+    "G1": (1, 1, 2),
+    "G2": (1, 1, 2),
+    "G3a": (1, 2, 3),
+    "G3b": (2, 3, 3),
+    "G4": (3, 4, 4),
+    "G5": (4, 4, 4),
+}
+
+
+def ckd_stage(gfr: float, acr: float) -> tuple[str, str, int]:
+    """
+    Determine CKD stage based on GFR and ACR.
+
+    Args:
+        gfr (float): Estimated GFR in ml/min/1.73m²
+        acr (float): Albumin-Creatinine-Ratio
+    Returns:
+        tuple[str, str, int]: Tuple with three parts:
+            * CKD stage (G1-G5)
+            * albumin category (A1-A3)
+            * risk of progression (1-4) = recommended checks per year. If this value
+                    is 4, it is recommended to make *at least* 4 checks per year.
+    """
+    alb_cat = 0
+
+    if acr < 30:
+        alb_cat = 1
+    elif 30 < acr <= 300:
+        alb_cat = 2
+    elif acr > 300:
+        alb_cat = 3
+
+    if gfr >= 90:
+        gfr_category = "G1"
+    elif 60 <= gfr < 90:
+        gfr_category = "G2"
+    elif 45 <= gfr < 60:
+        gfr_category = "G3a"
+    elif 30 <= gfr < 45:
+        gfr_category = "G3b"
+    elif 15 <= gfr < 30:
+        gfr_category = "G4"
+    elif gfr < 15:
+        gfr_category = "G5"
+    else:
+        raise ValueError("Unknown GFR value: {gfr}")
+
+    #  e.g. ("G3a", "A2")
+    return (
+        gfr_category,
+        f"A{alb_cat}",
+        ckd_progression_matrix[gfr_category][alb_cat - 1],
+    )
