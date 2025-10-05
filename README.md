@@ -33,6 +33,7 @@ See [Contributing](CONTRIBUTING.md).
 | Renal Function (**renal**)                          | ✅ | Creatinine Clearance (Cockcroft-Gault)        | Estimate renal function (CrCl)                 |
 |                                                     | ✅ | CKD-EPI GFR Equations                         | Estimate GFR in CKD patients                   |
 |                                                     | ✅ | MDRD GFR Equation                             | Estimate GFR in CKD patients                   |
+|                                                     | ✅ | CKD Staging                                   | Estimate progression risk using GFR/ACR        |
 |                                                     |   | Fractional Excretion of Sodium (FENa)         | Differentiate renal failure type               |
 | Electrolytes (**lytes**)                            |   | Sodium Correction for Hyperglycemia           | Correct Na in hyperglycemia                    |
 |                                                     |   | Serum Osmolality/Osmolarity                   | Detect unmeasured serum compounds              |
