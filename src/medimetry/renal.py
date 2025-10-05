@@ -7,17 +7,20 @@ def cockcroft_gault(
     weight: float,
     creatinine: float,
     gender: Gender,
-    height: float | None = None,
 ) -> int:
     """
     Calculate creatinine clearance using Cockcroft-Gault formula.
+
+    This formula is still occasionally used, but it is no longer recommended in the
+    literature. Its disadvantages include the fact that it was derived from an
+    evaluation of only 249 participants, requires laboratories to know the patient's
+    body weight, and does not normalize the result to body surface area.
 
     Args:
         age (int): Age in years
         weight (float): Weight in kg
         creatinine (float): Serum creatinine in mg/dl
         gender (str): Gender (MALE or FEMALE)
-        height (float, optional): Height in cm (not used in standard formula)
 
     Returns:
         float: Creatinine clearance in mL/min
@@ -25,10 +28,11 @@ def cockcroft_gault(
     assert weight > 0, "Weight must be positive"
     assert weight < 400, "Weight must be less than 400 kg"
     assert age > 0, "Age must be positive"
-    assert creatinine >= 0, "Creatinine must be non-negative"
-    assert gender in (Gender.MALE, Gender.FEMALE), "Gender must be MALE or FEMALE"
-    assert height is None or (0 < height < 150), "Height must be positive and less than 150 cm"
+    assert creatinine >= 0, "Creatinine must not be negative"
+    assert isinstance(gender, Gender), "gender must be a Gender instance"
 
+    if float(creatinine) == 0.0:
+        raise ValueError("Creatinine must be non-zero")
     # Base calculation: ((140 - age) * weight) / (72 * creatinine)
     clearance = ((140 - age) * weight) / (72 * creatinine)
 
