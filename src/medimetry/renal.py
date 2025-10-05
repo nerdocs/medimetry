@@ -11,7 +11,8 @@ def cockcroft_gault(
     """
     Calculate creatinine clearance using Cockcroft-Gault formula.
 
-    This formula is still occasionally used, but it is no longer recommended in the
+    Note: This formula has been replaced by the CDK-EPI formula for accuracy.
+    It is still occasionally used, but it is no longer recommended in the
     literature. Its disadvantages include the fact that it was derived from an
     evaluation of only 249 participants, requires laboratories to know the patient's
     body weight, and does not normalize the result to body surface area.
@@ -47,9 +48,9 @@ def mdrd(creatinine: float, age: int, gender: Gender, race: EthnicalRace = Ethni
     """
     Calculate eGFR using MDRD (Modification of Diet in Renal Disease) formula.
 
-    eGFR=175 x (creatinine)^-1.154 x (age)^-0.203 x (0.742 if female) x (1.212 if Black)
+    Note: This formula has been replaced by the CDK-EPI formula for accuracy.
 
-    Note: This formula meanwhile has been replaced by the CDK-EPI formula for accuracy.
+    eGFR=175 x (creatinine)^-1.154 x (age)^-0.203 x (0.742 if female) x (1.212 if Black)
 
     It is only recommended for adults >18 years. If the result exceeds 60
     ml/min/1.73m², the actual value is of little significance. Thus, it would be
