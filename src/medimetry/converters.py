@@ -45,6 +45,7 @@ def dob2age(dob: date, given_date: date | None = None) -> int:
 
     Args:
         dob (date): Date of birth
+        given_date (date, optional): Reference date for age calculation
 
     Returns:
         int: Age in years
