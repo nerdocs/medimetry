@@ -3,42 +3,6 @@ from datetime import date
 from datetime import datetime
 
 
-def umoll2mgdl(umoll: float) -> float:
-    """
-    Convert umol/L to mg/dl.
-
-    Args:
-        umoll (float): Concentration in umol/L
-
-    Returns:
-        float: Concentration in mg/dl
-    """
-    # assert that umoll is not infinitive
-    if umoll == float("inf"):
-        raise ValueError("Cannot convert infinity to mg/dl")
-    if umoll == float("-inf"):
-        raise ValueError("Cannot convert negative infinity to mg/dl")
-
-    return umoll * 18.01528  # 18.01528 mg/mol
-
-
-def mgdl2umoll(mgdl: float) -> float:
-    """
-    Convert mg/dl to umol/L.
-
-    Args:
-        mgdl (float): Concentration in mg/dl
-
-    Returns:
-        float: Concentration in umol/L
-    """
-    if mgdl == float("inf"):
-        raise ValueError("Cannot convert infinity to mg/dl")
-    if mgdl == float("-inf"):
-        raise ValueError("Cannot convert negative infinity to mg/dl")
-    return mgdl / 18.01528  # 18.01528 mg/mol
-
-
 def dob2age(dob: date, given_date: date | None = None) -> int:
     """
     Convert date of birth to age in years.
