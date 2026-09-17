@@ -7,13 +7,20 @@ from pathlib import Path
 import pytest
 
 from medimetry import Gender
+from medimetry.growth import CHART_0_18_YEARS
+from medimetry.growth import CHART_FIRST_YEAR
 from medimetry.growth import DAYS_PER_MONTH
+from medimetry.growth import DEFAULT_PERCENTILES
+from medimetry.growth import PERCENTILES_WHO
+from medimetry.growth import AgeUnit
 from medimetry.growth import GrowthIndicator
 from medimetry.growth import GrowthReference
 from medimetry.growth import WhoDownloadError
 from medimetry.growth import _read_xlsx
 from medimetry.growth import download_who_tables
+from medimetry.growth import growth_curves
 from medimetry.growth import growth_percentile
+from medimetry.growth import growth_value_at_percentile
 from medimetry.growth import growth_zscore
 from medimetry.growth import write_canonical_table
 
@@ -171,3 +178,96 @@ def test_download_who_tables_reports_all_failures(tmp_path, monkeypatch):
     assert "18 WHO download(s) failed" in str(excinfo.value)
     assert "403 Forbidden" in str(excinfo.value)
     assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize(("indicator", "gender", "raw_key", "l", "m", "s", "p3", "p97"), CDC_ROWS)
+def test_value_at_percentile_matches_published_columns(indicator, gender, raw_key, l, m, s, p3, p97):  # noqa: E741
+    """The inverse LMS reproduces the CDC P3 / P50 / P97 columns."""
+    kwargs = _key_kwargs(indicator, raw_key)
+    assert growth_value_at_percentile(indicator, gender, percentile=50, **kwargs) == pytest.approx(m, rel=1e-6)
+    assert growth_value_at_percentile(indicator, gender, percentile=3, **kwargs) == pytest.approx(p3, rel=1e-3)
+    assert growth_value_at_percentile(indicator, gender, percentile=97, **kwargs) == pytest.approx(p97, rel=1e-3)
+
+
+def test_value_at_percentile_roundtrip_with_zscore():
+    kwargs = {"age_days": 10 * 365.25}
+    value = growth_value_at_percentile(GrowthIndicator.BMI_FOR_AGE, Gender.FEMALE, percentile=85, **kwargs)
+    assert growth_percentile(GrowthIndicator.BMI_FOR_AGE, Gender.FEMALE, value=value, **kwargs) == 85.0
+
+
+def test_value_at_percentile_validation():
+    with pytest.raises(ValueError, match="Percentile must be between"):
+        growth_value_at_percentile(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, percentile=0, age_days=100)
+    with pytest.raises(ValueError, match="Percentile must be between"):
+        growth_value_at_percentile(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, percentile=100, age_days=100)
+
+
+def test_lms_value_not_representable():
+    from medimetry.growth import _lms_value
+
+    with pytest.raises(ValueError, match="outside the range representable"):
+        _lms_value(z=10, l=-2.0, m=20.0, s=0.15)
+
+
+def test_lms_value_l_zero_branch():
+    from medimetry.growth import _lms_value
+
+    assert _lms_value(z=1.0, l=0.0, m=3.0, s=0.1) == pytest.approx(3.0 * math.exp(0.1))
+
+
+def test_curves_table_rows_without_step():
+    c = growth_curves(GrowthIndicator.HEAD_CIRCUMFERENCE_FOR_AGE, Gender.MALE, age_unit=AgeUnit.MONTHS)
+    assert c.age_unit == AgeUnit.MONTHS
+    assert len(c.keys) == 38  # all CDC hcageinf rows
+    assert c.keys[0] == 0.0
+    assert c.keys[-1] == 36.0
+    assert set(c.curves) == set(DEFAULT_PERCENTILES)
+    assert all(len(v) == 38 for v in c.curves.values())
+    # curves are ordered: P3 < P50 < P97 everywhere
+    for i in range(38):
+        assert c.curves[3.0][i] < c.curves[50.0][i] < c.curves[97.0][i]
+
+
+def test_curves_uniform_sampling_and_units():
+    c = growth_curves(
+        GrowthIndicator.LENGTH_HEIGHT_FOR_AGE, Gender.FEMALE, age_unit=AgeUnit.WEEKS, start=0, end=52, step=1, percentiles=(50,)
+    )
+    assert c.keys == pytest.approx(list(range(53)))
+    assert len(c.curves[50.0]) == 53
+    # week 26 equals the median at 26 * 7 days
+    expected = growth_value_at_percentile(GrowthIndicator.LENGTH_HEIGHT_FOR_AGE, Gender.FEMALE, percentile=50, age_days=26 * 7)
+    assert c.curves[50.0][26] == pytest.approx(expected)
+
+
+def test_curves_clamped_to_table_range():
+    c = growth_curves(GrowthIndicator.HEAD_CIRCUMFERENCE_FOR_AGE, Gender.MALE, age_unit=AgeUnit.YEARS, start=0, end=18, step=1)
+    assert c.keys == pytest.approx([0.0, 1.0, 2.0, 3.0])  # CDC head circumference ends at 36 months = 3 years
+
+
+def test_curves_length_keyed_ignores_age_unit():
+    c = growth_curves(GrowthIndicator.WEIGHT_FOR_LENGTH, Gender.MALE, age_unit=AgeUnit.YEARS, start=50, end=60, step=5, percentiles=(50,))
+    assert c.age_unit is None
+    assert c.keys == pytest.approx([50.0, 55.0, 60.0])
+
+
+def test_curves_validation():
+    with pytest.raises(ValueError, match="step must be positive"):
+        growth_curves(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, step=0)
+    with pytest.raises(ValueError, match="Empty range"):
+        growth_curves(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, age_unit=AgeUnit.YEARS, start=25, end=30)
+    with pytest.raises(AssertionError, match="AgeUnit"):
+        growth_curves(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, age_unit="months")
+
+
+def test_chart_presets():
+    first_year = growth_curves(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, **CHART_FIRST_YEAR)
+    assert first_year.age_unit == AgeUnit.WEEKS
+    assert first_year.keys[0] == 0.0
+    assert first_year.keys[-1] == 52.0
+    assert len(first_year.keys) == 53
+
+    childhood = growth_curves(GrowthIndicator.LENGTH_HEIGHT_FOR_AGE, Gender.FEMALE, percentiles=PERCENTILES_WHO, **CHART_0_18_YEARS)
+    assert childhood.age_unit == AgeUnit.YEARS
+    assert len(childhood.keys) == 18 * 12 + 1
+    assert childhood.keys[-1] == pytest.approx(18.0)
+    assert set(childhood.curves) == {3.0, 15.0, 50.0, 85.0, 97.0}

@@ -58,6 +58,61 @@ Exactly one of `age_days` / `length_cm` must be given, and it must match the ind
 errors), so a changed or restricted WHO download location shows up as one structured error, e.g. `403 Forbidden`.
 Nothing is written in that case.
 
+## Percentile curves for plotting
+
+`growth_value_at_percentile` inverts the LMS formula (value = M · (1 + L·S·z)^(1/L), or M · exp(S·z) if L = 0)
+and returns the measurement on a given percentile at a given age or length. `growth_curves` samples that for a
+set of percentiles and returns plain lists, ready to serialize as JSON for any charting library. The drawing
+itself (axes, grid, labels) belongs to the application, not to medimetry.
+
+```python
+from medimetry.growth import AgeUnit, GrowthIndicator, growth_curves
+
+curves = growth_curves(
+    GrowthIndicator.WEIGHT_FOR_AGE, Gender.FEMALE,
+    percentiles=(3, 10, 25, 50, 75, 90, 97),
+    age_unit=AgeUnit.MONTHS, start=0, end=12, step=0.25,
+)
+curves.keys          # [0.0, 0.25, 0.5, ...] months
+curves.curves[50.0]  # median weight in kg at each key
+curves.age_unit      # AgeUnit.MONTHS (None for weight-for-length / -height, where keys are cm)
+```
+
+### Chart presets and percentile sets
+
+Printed chart sheets follow a few conventions (WHO 2006/2007 sheets, CDC 2000 clinical charts, Kromeyer-Hauschild
+sheets used in the German U-Heft; Austria uses the WHO curves below 5 years):
+
+| Convention               | Sheets                           | Lines (P50 bold except CDC) | Constant                 |
+|--------------------------|----------------------------------|-----------------------------|--------------------------|
+| WHO                      | 0–6 mo (weeks), 0–2, 0–5, 5–19 y | 3, 15, 50, 85, 97           | `PERCENTILES_WHO`        |
+| CDC birth–36 months      | one sheet, 3-month ticks         | 5, 10, 25, 50, 75, 90, 95   | `PERCENTILES_CDC_INFANT` |
+| CDC 2–20 y, DACH (KH)    | one sheet, yearly ticks          | 3, 10, 25, 50, 75, 90, 97   | `DEFAULT_PERCENTILES`    |
+
+Two sampling presets cover the layouts most applications need; unpack them into `growth_curves`:
+
+```python
+from medimetry.growth import CHART_0_18_YEARS, CHART_FIRST_YEAR, PERCENTILES_WHO
+
+growth_curves(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, **CHART_FIRST_YEAR)   # weeks 0–52, weekly
+growth_curves(GrowthIndicator.LENGTH_HEIGHT_FOR_AGE, Gender.MALE, percentiles=PERCENTILES_WHO, **CHART_0_18_YEARS)
+```
+
+`CHART_FIRST_YEAR` samples weeks 0–52 (53 points); `CHART_0_18_YEARS` samples years 0–18 monthly (217 points).
+Drawing conventions worth copying in the application: emphasize the median line, label each line at its right end,
+put a vertical marker at 2 years on length/height-for-age (recumbent length below, standing height above), and use
+a fine minor grid (0.5 kg, 1 cm) under labeled major gridlines.
+
+- `start`, `end` and `step` are in `age_unit` (`DAYS`, `WEEKS`, `MONTHS`, `YEARS`); for the length-keyed
+  indicators they are in cm and `age_unit` is ignored.
+- Without `step` the table rows are returned unchanged (CDC: half-monthly, WHO: daily below 5 years, monthly
+  above). With `step` the curves are sampled uniformly using the same interpolation as `growth_zscore`, so the
+  resolution is independent of the table.
+- `start` / `end` are clamped to the table coverage. Asking WHO weight-for-age for 0–18 years returns 0–10 years;
+  inspect `keys` when the range matters.
+- The percentile at a given key is undefined if `1 + L·S·z <= 0` (only for extreme percentiles with strongly
+  negative L); `growth_value_at_percentile` raises `ValueError` then.
+
 ## Conventions and limitations
 
 - **Age unit is days.** Table keys given in months by CDC and WHO are converted with 1 month = 30.4375 days

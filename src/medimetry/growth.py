@@ -18,12 +18,14 @@ import math
 import zipfile
 from bisect import bisect_left
 from collections.abc import Iterable
+from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
 from importlib import resources
 from io import BytesIO
 from itertools import pairwise
 from pathlib import Path
+from statistics import NormalDist
 from urllib.error import HTTPError
 from urllib.error import URLError
 from urllib.request import Request
@@ -68,7 +70,46 @@ class GrowthIndicator(Enum):
     WEIGHT_FOR_HEIGHT = "wfh"
 
 
+class AgeUnit(Enum):
+    """Unit of the age axis returned by ``growth_curves``."""
+
+    DAYS = "days"
+    WEEKS = "weeks"
+    MONTHS = "months"
+    YEARS = "years"
+
+
+_DAYS_PER_UNIT = {AgeUnit.DAYS: 1.0, AgeUnit.WEEKS: 7.0, AgeUnit.MONTHS: DAYS_PER_MONTH, AgeUnit.YEARS: 365.25}
+
 _LENGTH_KEYED = {GrowthIndicator.WEIGHT_FOR_LENGTH, GrowthIndicator.WEIGHT_FOR_HEIGHT}
+
+# Percentile line sets used by the common printed chart sheets
+DEFAULT_PERCENTILES = (3.0, 10.0, 25.0, 50.0, 75.0, 90.0, 97.0)  # CDC 2-20 y, Kromeyer-Hauschild (DACH)
+PERCENTILES_WHO = (3.0, 15.0, 50.0, 85.0, 97.0)  # WHO chart sheets 0-19 y
+PERCENTILES_CDC_INFANT = (5.0, 10.0, 25.0, 50.0, 75.0, 90.0, 95.0)  # CDC birth-36 months sheets
+
+# Sampling presets for the two chart layouts commonly used in practice; unpack into growth_curves(**preset).
+# First year of life, weekly resolution (WHO infant sheets use a week axis).
+CHART_FIRST_YEAR = {"age_unit": AgeUnit.WEEKS, "start": 0, "end": 52, "step": 1}
+# Childhood and adolescence on one sheet, monthly resolution (DACH convention: one 0-18 y sheet).
+CHART_0_18_YEARS = {"age_unit": AgeUnit.YEARS, "start": 0, "end": 18, "step": 1 / 12}
+
+
+@dataclass
+class GrowthCurves:
+    """
+    Sampled percentile curves of one indicator, ready for plotting.
+
+    Attributes:
+        keys (list[float]): x values - age in ``age_unit`` for age-based indicators, length/height in cm otherwise
+        curves (dict[float, list[float]]): percentile -> y values (same length as ``keys``)
+        age_unit (AgeUnit | None): Unit of ``keys``; None for length/height-keyed indicators
+    """
+
+    keys: list[float]
+    curves: dict[float, list[float]]
+    age_unit: AgeUnit | None
+
 
 _CANONICAL_HEADER = ["key", "L", "M", "S"]
 
@@ -138,6 +179,35 @@ def _lms_zscore(value: float, l: float, m: float, s: float) -> float:  # noqa: E
     return ((value / m) ** l - 1) / (l * s)
 
 
+def _lms_value(z: float, l: float, m: float, s: float) -> float:  # noqa: E741
+    """Inverse of ``_lms_zscore``: the measurement at z-score z."""
+    if l == 0:
+        return m * math.exp(s * z)
+    base = 1 + l * s * z
+    if base <= 0:
+        raise ValueError(f"z-score {z} is outside the range representable by the LMS parameters at this key")
+    return m * base ** (1 / l)
+
+
+def _validate(indicator: GrowthIndicator, gender: Gender, reference: GrowthReference) -> None:
+    assert isinstance(indicator, GrowthIndicator), "indicator must be a GrowthIndicator"
+    assert isinstance(reference, GrowthReference), "reference must be a GrowthReference"
+    assert gender in (Gender.MALE, Gender.FEMALE), "Gender must be Gender.MALE or Gender.FEMALE"
+
+
+def _key(indicator: GrowthIndicator, age_days: float | None, length_cm: float | None) -> float:
+    """Pick the table key from the mutually exclusive age_days / length_cm arguments."""
+    if (age_days is None) == (length_cm is None):
+        raise ValueError("Exactly one of age_days or length_cm must be given")
+    if indicator in _LENGTH_KEYED:
+        if length_cm is None:
+            raise ValueError(f"{indicator.name} is keyed by length_cm, not age_days")
+        return length_cm
+    if age_days is None:
+        raise ValueError(f"{indicator.name} is keyed by age_days, not length_cm")
+    return age_days
+
+
 def _zscore(
     indicator: GrowthIndicator,
     gender: Gender,
@@ -147,24 +217,18 @@ def _zscore(
     reference: GrowthReference,
     data_dir: Path | None,
 ) -> float:
-    assert isinstance(indicator, GrowthIndicator), "indicator must be a GrowthIndicator"
-    assert isinstance(reference, GrowthReference), "reference must be a GrowthReference"
-    assert gender in (Gender.MALE, Gender.FEMALE), "Gender must be Gender.MALE or Gender.FEMALE"
+    _validate(indicator, gender, reference)
     if value <= 0:
         raise ValueError("Measured value must be positive")
-    if (age_days is None) == (length_cm is None):
-        raise ValueError("Exactly one of age_days or length_cm must be given")
-    if indicator in _LENGTH_KEYED:
-        if length_cm is None:
-            raise ValueError(f"{indicator.name} is keyed by length_cm, not age_days")
-        key = length_cm
-    else:
-        if age_days is None:
-            raise ValueError(f"{indicator.name} is keyed by age_days, not length_cm")
-        key = age_days
-
+    key = _key(indicator, age_days, length_cm)
     keys, lms = _load_table(reference, indicator, gender, data_dir)
     return _lms_zscore(value, *_lms_at(keys, lms, key))
+
+
+def _percentile_z(percentile: float) -> float:
+    if not 0 < percentile < 100:
+        raise ValueError("Percentile must be between 0 and 100 (exclusive)")
+    return NormalDist().inv_cdf(percentile / 100)
 
 
 def growth_zscore(
@@ -242,6 +306,114 @@ def growth_percentile(
     """
     z = _zscore(indicator, gender, value, age_days, length_cm, reference, data_dir)
     return round(50 * (1 + math.erf(z / math.sqrt(2))), 1)
+
+
+def growth_value_at_percentile(
+    indicator: GrowthIndicator,
+    gender: Gender,
+    *,
+    percentile: float,
+    age_days: float | None = None,
+    length_cm: float | None = None,
+    reference: GrowthReference = GrowthReference.CDC,
+    data_dir: Path | None = None,
+) -> float:
+    """
+    Calculate the measurement value that lies on a given percentile at a given age (or length).
+
+    Inverse of ``growth_zscore``: value = M x (1 + L x S x z)^(1/L), or M x exp(S x z) if L = 0, with z the
+    standard normal quantile of the percentile. Arguments and limitations as in ``growth_zscore``.
+
+    Args:
+        percentile (float): Percentile in the open interval 0-100 (e.g. 50 for the median)
+
+    Returns:
+        float: Value in the indicator's unit (kg, cm or kg/m²), unrounded
+
+    Raises:
+        ValueError: If the percentile is out of range, the key is invalid or the percentile is not representable
+            by the LMS parameters at that key
+
+    >>> round(growth_value_at_percentile(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, percentile=50, age_days=24.5 * DAYS_PER_MONTH), 3)
+    12.742
+    """
+    _validate(indicator, gender, reference)
+    key = _key(indicator, age_days, length_cm)
+    z = _percentile_z(percentile)
+    keys, lms = _load_table(reference, indicator, gender, data_dir)
+    return _lms_value(z, *_lms_at(keys, lms, key))
+
+
+def growth_curves(
+    indicator: GrowthIndicator,
+    gender: Gender,
+    *,
+    percentiles: Iterable[float] = DEFAULT_PERCENTILES,
+    age_unit: AgeUnit = AgeUnit.MONTHS,
+    start: float | None = None,
+    end: float | None = None,
+    step: float | None = None,
+    reference: GrowthReference = GrowthReference.CDC,
+    data_dir: Path | None = None,
+) -> GrowthCurves:
+    """
+    Sample percentile curves of a growth indicator for plotting.
+
+    ``start``, ``end`` and ``step`` are given in ``age_unit`` (age-based indicators) or in cm (weight-for-length /
+    weight-for-height, where ``age_unit`` is ignored). Without ``step`` the rows of the reference table are
+    returned as they are; with ``step`` the curves are sampled at ``start, start + step, ...`` up to ``end`` using
+    the same interpolation as ``growth_zscore``. ``start`` / ``end`` default to the table range and are clamped to
+    it, so a request beyond the table coverage (e.g. WHO weight-for-age above 10 years) returns the covered part
+    only - check ``keys`` when the range matters.
+
+    Args:
+        indicator (GrowthIndicator): Which growth chart to use
+        gender (Gender): Gender.MALE or Gender.FEMALE
+        percentiles (Iterable[float]): Percentile lines to compute (default 3, 10, 25, 50, 75, 90, 97)
+        age_unit (AgeUnit): Unit of the returned keys and of ``start``/``end``/``step`` for age-based indicators
+        start (float, optional): First key
+        end (float, optional): Last key
+        step (float, optional): Sampling interval; None returns the table rows
+        reference (GrowthReference): GrowthReference.CDC (bundled) or GrowthReference.WHO (user-downloaded)
+        data_dir (Path, optional): Directory holding the WHO tables written by ``download_who_tables``
+
+    Returns:
+        GrowthCurves: keys plus one value list per percentile
+
+    >>> c = growth_curves(GrowthIndicator.LENGTH_HEIGHT_FOR_AGE, Gender.MALE, **CHART_FIRST_YEAR)
+    >>> len(c.keys), c.keys[:3]
+    (53, [0.0, 1.0, 2.0])
+    >>> c = growth_curves(GrowthIndicator.WEIGHT_FOR_AGE, Gender.FEMALE, age_unit=AgeUnit.YEARS, start=2, end=18, step=1)
+    >>> c.keys[:3], c.age_unit
+    ([2.0, 3.0, 4.0], <AgeUnit.YEARS: 'years'>)
+    >>> [round(v, 1) for v in c.curves[50.0][:3]]
+    [12.1, 13.9, 15.8]
+    """
+    _validate(indicator, gender, reference)
+    assert isinstance(age_unit, AgeUnit), "age_unit must be an AgeUnit"
+    if step is not None and step <= 0:
+        raise ValueError("step must be positive")
+    percentiles = [float(p) for p in percentiles]
+    z_values = {p: _percentile_z(p) for p in percentiles}
+
+    keys, lms = _load_table(reference, indicator, gender, data_dir)
+    length_keyed = indicator in _LENGTH_KEYED
+    factor = 1.0 if length_keyed else _DAYS_PER_UNIT[age_unit]
+
+    lo = keys[0] if start is None else max(start * factor, keys[0])
+    hi = keys[-1] if end is None else min(end * factor, keys[-1])
+    if lo > hi:
+        raise ValueError(f"Empty range: start {lo / factor} > end {hi / factor} (table covers {keys[0] / factor}-{keys[-1] / factor})")
+
+    if step is None:
+        sample = [k for k in keys if lo <= k <= hi]
+    else:
+        step_days = step * factor
+        n = int((hi - lo) / step_days + 1e-9)
+        sample = [lo + i * step_days for i in range(n + 1)]
+
+    curves = {p: [_lms_value(z, *_lms_at(keys, lms, k)) for k in sample] for p, z in z_values.items()}
+    return GrowthCurves(keys=[k / factor for k in sample], curves=curves, age_unit=None if length_keyed else age_unit)
 
 
 # --- WHO download -------------------------------------------------------------------------------------------------
