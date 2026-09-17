@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 dynamic = ["readme"]
 name = "medimetry"
-version = "0.0.1"
+version = "0.1.0"
 license = "MIT"
 license-files = ["LICENSE"]
 description = "Reference implementations of published clinical formulas and scores for developers (not a medical device)"
