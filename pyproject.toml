@@ -27,7 +27,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Topic :: Utilities",
-  "Topic :: Scientific/Engineering :: Medical Science Apps",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
 ]
 keywords = [
   "medical",
@@ -51,7 +51,7 @@ test = ["pytest"]
 "Issue Tracker" = "https://github.com/nerdocs/medimetry/issues"
 
 [tool.setuptools.dynamic]
-readme = { file = ["README.md"] }
+readme = { file = ["README.md"], content-type = "text/markdown" }
 
 [tool.ruff]
 extend-exclude = ["static", "ci/templates"]
