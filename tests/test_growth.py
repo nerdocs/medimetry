@@ -1,5 +1,6 @@
 import io
 import math
+import urllib.error
 import zipfile
 from pathlib import Path
 
@@ -9,7 +10,9 @@ from medimetry import Gender
 from medimetry.growth import DAYS_PER_MONTH
 from medimetry.growth import GrowthIndicator
 from medimetry.growth import GrowthReference
+from medimetry.growth import WhoDownloadError
 from medimetry.growth import _read_xlsx
+from medimetry.growth import download_who_tables
 from medimetry.growth import growth_percentile
 from medimetry.growth import growth_zscore
 from medimetry.growth import write_canonical_table
@@ -141,3 +144,30 @@ def test_write_canonical_table(tmp_path):
     assert path.read_text().splitlines() == ["key;L;M;S", "1.0;4.0;5.0;6.0", "2.0;1.0;2.0;3.0"]
     with pytest.raises(AssertionError, match="Duplicate key"):
         write_canonical_table(path, [(1.0, 1, 2, 3), (1.0, 4, 5, 6)])
+
+
+def test_download_who_tables_reports_all_failures(tmp_path, monkeypatch):
+    """Every failed URL is collected with its HTTP status; nothing is written."""
+    calls = []
+
+    def fake_urlopen(request, timeout):
+        calls.append(request.full_url)
+        if len(calls) == 1:
+            raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, None)
+        if len(calls) == 2:
+            raise urllib.error.URLError("timed out")
+        raise urllib.error.HTTPError(request.full_url, 404, "Not Found", {}, None)
+
+    monkeypatch.setattr("medimetry.growth.urlopen", fake_urlopen)
+    with pytest.raises(WhoDownloadError) as excinfo:
+        download_who_tables(tmp_path)
+
+    failures = excinfo.value.failures
+    assert len(failures) == len(calls) == 18
+    assert failures[0][1:] == (403, "Forbidden")
+    assert failures[1][1] is None
+    assert "timed out" in failures[1][2]
+    assert failures[2][1] == 404
+    assert "18 WHO download(s) failed" in str(excinfo.value)
+    assert "403 Forbidden" in str(excinfo.value)
+    assert list(tmp_path.iterdir()) == []

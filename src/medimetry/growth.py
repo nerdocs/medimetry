@@ -24,6 +24,8 @@ from importlib import resources
 from io import BytesIO
 from itertools import pairwise
 from pathlib import Path
+from urllib.error import HTTPError
+from urllib.error import URLError
 from urllib.request import Request
 from urllib.request import urlopen
 from xml.etree import ElementTree
@@ -31,6 +33,21 @@ from xml.etree import ElementTree
 from medimetry.constants import Gender
 
 DAYS_PER_MONTH = 30.4375  # 365.25 / 12
+
+
+class WhoDownloadError(Exception):
+    """
+    Raised by ``download_who_tables`` when one or more WHO workbooks could not be fetched.
+
+    Attributes:
+        failures (list[tuple[str, int | None, str]]): ``(url, http_status, reason)`` per failed download;
+            ``http_status`` is None for network-level errors (DNS, timeout, connection refused).
+    """
+
+    def __init__(self, failures: list[tuple[str, int | None, str]]):
+        self.failures = failures
+        lines = [f"  {status if status is not None else '-'} {reason}: {url}" for url, status, reason in failures]
+        super().__init__(f"{len(failures)} WHO download(s) failed (WHO may have moved or restricted the files):\n" + "\n".join(lines))
 
 
 class GrowthReference(Enum):
@@ -381,15 +398,30 @@ def download_who_tables(target_dir: Path) -> list[Path]:
 
     Returns:
         list[Path]: The written CSV files (12)
+
+    Raises:
+        WhoDownloadError: If any workbook could not be fetched (HTTP error such as 403/404, or a network error).
+            All URLs are attempted first so the error lists every failure; nothing is written in that case.
     """
     target_dir = Path(target_dir)
     target_dir.mkdir(parents=True, exist_ok=True)
 
     collected: dict[tuple[GrowthIndicator, Gender], list[tuple[float, float, float, float]]] = {}
+    failures: list[tuple[str, int | None, str]] = []
     for indicator, gender, url, key_column, key_factor in _WHO_SOURCES:
-        with urlopen(Request(url, headers={"User-Agent": _USER_AGENT}), timeout=60) as response:  # noqa: S310
-            data = response.read()
+        try:
+            with urlopen(Request(url, headers={"User-Agent": _USER_AGENT}), timeout=60) as response:  # noqa: S310
+                data = response.read()
+        except HTTPError as e:
+            failures.append((url, e.code, e.reason))
+            e.close()
+            continue
+        except URLError as e:
+            failures.append((url, None, str(e.reason)))
+            continue
         collected.setdefault((indicator, gender), []).extend(_lms_rows(_read_xlsx(data), key_column, key_factor))
+    if failures:
+        raise WhoDownloadError(failures)
 
     written = []
     for (indicator, gender), rows in collected.items():

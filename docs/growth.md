@@ -53,6 +53,11 @@ z = growth_zscore(
 
 Exactly one of `age_days` / `length_cm` must be given, and it must match the indicator.
 
+`download_who_tables` tries all 18 WHO URLs and then raises a single `WhoDownloadError` if any failed. Its
+`failures` attribute lists `(url, http_status, reason)` per failed download (`http_status` is `None` for network
+errors), so a changed or restricted WHO download location shows up as one structured error, e.g. `403 Forbidden`.
+Nothing is written in that case.
+
 ## Conventions and limitations
 
 - **Age unit is days.** Table keys given in months by CDC and WHO are converted with 1 month = 30.4375 days
