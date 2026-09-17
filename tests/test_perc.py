@@ -9,7 +9,6 @@ def test_perc_rule_negative():
 
     assert result.positive_criteria == 0
     assert result.positive is False
-    assert "PERC negative" in result.recommendation
 
 
 def test_perc_rule_age_criterion():
@@ -61,12 +60,11 @@ def test_perc_rule_all_criteria_positive():
         hemoptysis=True,
         recent_surgery_trauma=True,
         prior_pe_dvt=True,
-        hormone_use=True,
+        exogenous_estrogen=True,
     )
 
     assert result.positive_criteria == 8
     assert result.positive is True
-    assert "PERC positive (8 criteria)" in result.recommendation
 
 
 def test_perc_rule_partial_positive():
@@ -79,12 +77,11 @@ def test_perc_rule_partial_positive():
         hemoptysis=False,  # negative
         recent_surgery_trauma=True,  # positive
         prior_pe_dvt=False,  # negative
-        hormone_use=False,  # negative
+        exogenous_estrogen=False,  # negative
     )
 
     assert result.positive_criteria == 3
     assert result.positive is True
-    assert "PERC positive (3 criteria)" in result.recommendation
 
 
 def test_perc_rule_invalid_age():
@@ -128,7 +125,7 @@ def test_perc_rule_realistic_scenarios():
         heart_rate=85,
         oxygen_saturation=97.0,
         prior_pe_dvt=True,
-        hormone_use=True,
+        exogenous_estrogen=True,
     )
     assert result.positive_criteria == 2
     assert result.positive is True

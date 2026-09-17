@@ -15,6 +15,8 @@ def mean_arterial_pressure(systolic: int, diastolic: int) -> float:
     """
     Calculate mean arterial pressure (MAP) from systolic and diastolic blood pressure.
 
+    MAP = (2 x diastolic + systolic) / 3
+
     Args:
         systolic (int): Systolic blood pressure in mm Hg
         diastolic (int): Diastolic blood pressure in mm Hg
@@ -22,15 +24,15 @@ def mean_arterial_pressure(systolic: int, diastolic: int) -> float:
     Returns:
         float: Mean arterial pressure in mm Hg
     Raises:
-        ValueError: If either systolic or diastolic pressure is negative or diastolic
-        is greater than systolic.
+        ValueError: If either systolic or diastolic pressure is not positive or diastolic
+        is not lower than systolic.
     """
     if systolic <= 0:
-        raise ValueError("Systolic pressure must be non-negative")
+        raise ValueError("Systolic pressure must be positive")
     if diastolic <= 0:
-        raise ValueError("Diastolic pressure must be non-negative")
+        raise ValueError("Diastolic pressure must be positive")
     if diastolic >= systolic:
-        raise ValueError("Diastolic pressure must be greater than systolic pressure. ")
+        raise ValueError("Diastolic pressure must be lower than systolic pressure")
 
     return round((2 * diastolic + systolic) / 3, 1)
 
@@ -47,6 +49,12 @@ def chads_vasc_score(
     """
     Calculate CHA2DS2-VASc score for stroke risk assessment in atrial fibrillation.
 
+    References:
+        Lip GY, et al. Refining clinical risk stratification for predicting stroke and
+        thromboembolism in atrial fibrillation using a novel risk factor-based approach:
+        the Euro Heart Survey on Atrial Fibrillation. Chest. 2010;137(2):263-272.
+        doi:10.1378/chest.09-1584
+
     Args:
         age (int): Age in years
         gender (Gender): Gender (Gender.MALE or Gender.FEMALE)
@@ -60,7 +68,7 @@ def chads_vasc_score(
         int: CHA2DS2-VASc score (0-9)
     """
     if age <= 0:
-        raise ValueError("Age must be non-negative")
+        raise ValueError("Age must be positive")
     assert gender in (
         Gender.MALE,
         Gender.FEMALE,
@@ -95,32 +103,6 @@ def chads_vasc_score(
     return score
 
 
-def calcium_correction(total_calcium: float, albumin: float) -> float:
-    """
-    Calculate corrected calcium for hypo-/hyperalbuminemia.
-
-    Uses the formula: Corrected Ca = Total Ca + 0.8 x (4.0 - Albumin)
-
-    Args:
-        total_calcium (float): Total serum calcium in mg/dl
-        albumin (float): Serum albumin in g/dl
-
-    Returns:
-        float: Corrected calcium in mg/dl
-
-    Raises:
-        ValueError: If calcium or albumin values are negative
-    """
-    normal_calcium = 4.0
-    if total_calcium < 0:
-        raise ValueError("Total calcium must be non-negative")
-    if albumin < 0:
-        raise ValueError("Albumin must be non-negative")
-
-    corrected_calcium = total_calcium + 0.8 * (normal_calcium - albumin)
-    return round(corrected_calcium, 2)
-
-
 def framingham_risk_score(
     age: int,
     gender: Gender,
@@ -132,9 +114,15 @@ def framingham_risk_score(
     diabetes: bool = False,
 ) -> tuple[int, float, FraminghamRiskLevel]:
     """
-    Calculate Framingham Risk Score for 10-year cardiovascular disease risk.
+    Calculate the Framingham General Cardiovascular Disease Risk Score (10-year risk).
 
-    Based on the ATP III guidelines for cardiovascular risk assessment.
+    This is the sex-specific points system of the 2008 Framingham General CVD risk
+    profile (lipid version), not the older ATP III hard-CHD score.
+
+    References:
+        D'Agostino RB Sr, et al. General cardiovascular risk profile for use in primary care:
+        the Framingham Heart Study. Circulation. 2008;117(6):743-753.
+        doi:10.1161/CIRCULATIONAHA.107.699579
 
     Args:
         age (int): Age in years (30-79)
@@ -147,19 +135,13 @@ def framingham_risk_score(
         diabetes (bool): Presence of diabetes mellitus
 
     Returns:
-        tuple[int, float, FraminghamRiskLevel]: Points, 10-year risk percentage, risk level
+        tuple[int, float, FraminghamRiskLevel]: Points, 10-year risk percentage, risk level.
+            The percentage 0.999 stands for "< 1 %", 30.0 for "> 30 %" (table limits).
 
     Raises:
         ValueError: If parameters are out of valid ranges
     """
-    if hdl_cholesterol >= total_cholesterol:
-        raise ValueError("HDL cholesterol must be lower than total cholesterol")
-    if hdl_cholesterol > 10:
-        # TODO: automatically calculate with mg/dl?
-        raise ValueError(f"HDL cholesterol ({hdl_cholesterol}) is implausible high. Did you provide mg/dl instead of mmol/l?")
-    if total_cholesterol > 30:
-        # TODO: automatically calculate with mg/dl?
-        raise ValueError(f"Total cholesterol ({total_cholesterol}) is implausible high. Did you provide mg/dl instead of mmol/l?")
+    assert gender in (Gender.MALE, Gender.FEMALE), "Gender must be Gender.MALE or Gender.FEMALE"
     if not 30 <= age <= 79:
         raise ValueError("Age must be between 30 and 79 years")
     if total_cholesterol < 0:
@@ -168,6 +150,12 @@ def framingham_risk_score(
         raise ValueError("HDL cholesterol must be non-negative")
     if systolic_bp < 0:
         raise ValueError("Systolic BP must be non-negative")
+    if hdl_cholesterol >= total_cholesterol:
+        raise ValueError("HDL cholesterol must be lower than total cholesterol")
+    if hdl_cholesterol > 10:
+        raise ValueError(f"HDL cholesterol ({hdl_cholesterol}) is implausible high. Did you provide mg/dl instead of mmol/l?")
+    if total_cholesterol > 30:
+        raise ValueError(f"Total cholesterol ({total_cholesterol}) is implausible high. Did you provide mg/dl instead of mmol/l?")
 
     points = 0
 
@@ -227,16 +215,16 @@ def framingham_risk_score(
     else:  # chol > 7.2 mmol/l
         points += 4 if gender == Gender.MALE else 5
 
-    # HDL cholesterol points
+    # HDL cholesterol points (same for both sexes)
     if hdl_cholesterol > 1.6:
         points -= 2
     elif 1.3 <= hdl_cholesterol <= 1.6:
         points -= 1
     elif 1.2 <= hdl_cholesterol < 1.3:
-        points -= 1
+        points += 0
     elif 0.9 <= hdl_cholesterol < 1.2:
-        points -= 1
-    elif hdl_cholesterol < 0.9:
+        points += 1
+    else:  # < 0.9
         points += 2
 
     # Blood pressure points
@@ -298,7 +286,7 @@ def framingham_risk_score(
             12: 13.2,
             13: 15.6,
             14: 18.4,
-            15: 21.4,
+            15: 21.6,
             16: 25.3,
             17: 29.4,
             18: 30,  # >30
@@ -308,8 +296,8 @@ def framingham_risk_score(
         }
     else:
         risk_table = {
-            -3: 1,  # below 1%
-            -2: 1,  # below 1%
+            -3: 0.999,  # below 1%
+            -2: 0.999,  # below 1%
             -1: 1.0,
             0: 1.2,
             1: 1.5,

@@ -163,3 +163,9 @@ def test_gcs_realistic_scenarios():
     score3, category3 = gcs_from_scores(3, 2, 4)  # Opens to voice, incomprehensible, withdraws
     assert score3 == 9
     assert category3 == GCSCategory.MODERATE
+
+
+def test_gcs_not_testable_component_has_no_total():
+    """A NOT_TESTABLE component must not be summed into a total score."""
+    with pytest.raises(ValueError, match="not testable"):
+        glasgow_coma_scale(EyeResponse.SPONTANEOUS, VerbalResponse.NOT_TESTABLE, MotorResponse.OBEYS_COMMANDS)

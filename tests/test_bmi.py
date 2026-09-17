@@ -190,12 +190,12 @@ def test_bmi_precision():
 
 def test_bmi_enum_values():
     """Test that BMI category enum values are correct."""
-    assert BMICategory.UNDERWEIGHT.value == "Underweight"
-    assert BMICategory.NORMAL.value == "Normal weight"
-    assert BMICategory.OVERWEIGHT.value == "Overweight"
-    assert BMICategory.OBESE_CLASS_I.value == "Obese Class I"
-    assert BMICategory.OBESE_CLASS_II.value == "Obese Class II"
-    assert BMICategory.OBESE_CLASS_III.value == "Obese Class III"
+    assert BMICategory.UNDERWEIGHT.value == "underweight"
+    assert BMICategory.NORMAL.value == "normal"
+    assert BMICategory.OVERWEIGHT.value == "overweight"
+    assert BMICategory.OBESE_CLASS_I.value == "obese_class_i"
+    assert BMICategory.OBESE_CLASS_II.value == "obese_class_ii"
+    assert BMICategory.OBESE_CLASS_III.value == "obese_class_iii"
 
 
 def test_bmi_weight_too_high():

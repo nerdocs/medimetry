@@ -1,5 +1,6 @@
 import pytest
 
+from medimetry.renal import acr
 from medimetry.renal import ckd_stage
 
 
@@ -18,7 +19,7 @@ def test_ckd_stage_g2_a2():
     gfr_category, alb_category, risk = ckd_stage(75, 150)
     assert gfr_category == "G2"
     assert alb_category == "A2"
-    assert risk == 1
+    assert risk == 2
 
 
 def test_ckd_stage_g3a_a3():
@@ -27,7 +28,7 @@ def test_ckd_stage_g3a_a3():
     gfr_category, alb_category, risk = ckd_stage(50, 400)
     assert gfr_category == "G3a"
     assert alb_category == "A3"
-    assert risk == 3
+    assert risk == 4
 
 
 def test_ckd_stage_g3b_boundary():
@@ -36,7 +37,7 @@ def test_ckd_stage_g3b_boundary():
     gfr_category, alb_category, risk = ckd_stage(30, 25)
     assert gfr_category == "G3b"
     assert alb_category == "A1"
-    assert risk == 2
+    assert risk == 3
 
 
 def test_ckd_stage_g4_boundary():
@@ -45,7 +46,7 @@ def test_ckd_stage_g4_boundary():
     gfr_category, alb_category, risk = ckd_stage(15, 25)
     assert gfr_category == "G4"
     assert alb_category == "A1"
-    assert risk == 3
+    assert risk == 4
 
 
 def test_ckd_stage_g5():
@@ -63,7 +64,7 @@ def test_ckd_stage_acr_boundary_30():
     gfr_category, alb_category, risk = ckd_stage(75, 30)
     assert gfr_category == "G2"
     assert alb_category == "A2"
-    assert risk == 1
+    assert risk == 2
 
 
 def test_ckd_stage_acr_boundary_300():
@@ -72,7 +73,7 @@ def test_ckd_stage_acr_boundary_300():
     gfr_category, alb_category, risk = ckd_stage(75, 300)
     assert gfr_category == "G2"
     assert alb_category == "A2"
-    assert risk == 1
+    assert risk == 2
 
 
 def test_ckd_stage_gfr_boundary_90():
@@ -88,3 +89,15 @@ def test_ckd_stage_negative_gfr():
     """Test that ValueError is raised for negative GFR values."""
     with pytest.raises(ValueError, match="Invalid GFR value: -10"):
         ckd_stage(-10, 25)
+
+
+def test_ckd_stage_negative_acr():
+    """Test that ValueError is raised for negative ACR values."""
+    with pytest.raises(ValueError, match="ACR must not be negative"):
+        ckd_stage(75, -1)
+
+
+def test_acr_unit_is_mg_per_g():
+    """ACR from mg/dl urine values is expressed in mg/g and lands in the KDIGO A2 category."""
+    assert acr(30, 100) == 300.0
+    assert ckd_stage(80, acr(30, 100))[1] == "A2"

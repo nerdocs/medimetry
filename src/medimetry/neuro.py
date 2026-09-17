@@ -38,9 +38,16 @@ class MotorResponse(Enum):
 class GCSCategory(Enum):
     """Glasgow Coma Scale severity categories."""
 
-    SEVERE = _("Severe")
-    MODERATE = _("Moderate")
-    MILD = _("Mild")
+    SEVERE = "severe"
+    MODERATE = "moderate"
+    MILD = "mild"
+
+
+gcs_category_titles = {
+    GCSCategory.SEVERE: _("Severe"),
+    GCSCategory.MODERATE: _("Moderate"),
+    GCSCategory.MILD: _("Mild"),
+}
 
 
 def glasgow_coma_scale(
@@ -51,6 +58,16 @@ def glasgow_coma_scale(
     """
     Calculate Glasgow Coma Scale score and severity category.
 
+    A total score is only defined when all three components are testable. If any
+    component is NOT_TESTABLE, the components must be reported individually
+    (e.g. "E4 VNT M6") and this function raises a ValueError.
+
+    References:
+        Teasdale G, Jennett B. Assessment of coma and impaired consciousness. A practical
+        scale. Lancet. 1974;2(7872):81-84. doi:10.1016/s0140-6736(74)91639-0
+        Teasdale G, et al. The Glasgow Coma Scale at 40 years: standing the test of time.
+        Lancet Neurol. 2014;13(8):844-854. doi:10.1016/S1474-4422(14)70120-6
+
     Args:
         eye_response (EyeResponse): Eye opening response (1-4)
         verbal_response (VerbalResponse): Verbal response (1-5)
@@ -60,7 +77,7 @@ def glasgow_coma_scale(
         tuple[int, GCSCategory]: Total GCS score (3-15) and severity category
 
     Raises:
-        ValueError: If invalid response values are provided
+        ValueError: If invalid response values are provided or a component is not testable
     """
     if not isinstance(eye_response, EyeResponse):
         raise ValueError("Eye response must be an EyeResponse enum")
@@ -68,6 +85,12 @@ def glasgow_coma_scale(
         raise ValueError("Verbal response must be a VerbalResponse enum")
     if not isinstance(motor_response, MotorResponse):
         raise ValueError("Motor response must be a MotorResponse enum")
+    if (
+        eye_response == EyeResponse.NOT_TESTABLE
+        or verbal_response == VerbalResponse.NOT_TESTABLE
+        or motor_response == MotorResponse.NOT_TESTABLE
+    ):
+        raise ValueError("GCS total is undefined when a component is not testable; report the components individually")
 
     total_score = eye_response.value + verbal_response.value + motor_response.value
 

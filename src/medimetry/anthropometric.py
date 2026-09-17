@@ -6,12 +6,22 @@ from gettext import gettext as _
 class BMICategory(Enum):
     """BMI classification categories according to WHO standards."""
 
-    UNDERWEIGHT = _("Underweight")
-    NORMAL = _("Normal weight")
-    OVERWEIGHT = _("Overweight")
-    OBESE_CLASS_I = _("Obese Class I")
-    OBESE_CLASS_II = _("Obese Class II")
-    OBESE_CLASS_III = _("Obese Class III")
+    UNDERWEIGHT = "underweight"
+    NORMAL = "normal"
+    OVERWEIGHT = "overweight"
+    OBESE_CLASS_I = "obese_class_i"
+    OBESE_CLASS_II = "obese_class_ii"
+    OBESE_CLASS_III = "obese_class_iii"
+
+
+bmi_category_titles = {
+    BMICategory.UNDERWEIGHT: _("Underweight"),
+    BMICategory.NORMAL: _("Normal weight"),
+    BMICategory.OVERWEIGHT: _("Overweight"),
+    BMICategory.OBESE_CLASS_I: _("Obese Class I"),
+    BMICategory.OBESE_CLASS_II: _("Obese Class II"),
+    BMICategory.OBESE_CLASS_III: _("Obese Class III"),
+}
 
 
 class BSAFormula(Enum):
@@ -77,6 +87,10 @@ def bmi_category(bmi_value: float) -> BMICategory:
     """
     Classify BMI value into WHO categories.
 
+    References:
+        WHO. Obesity: preventing and managing the global epidemic. WHO Technical Report
+        Series 894. Geneva: World Health Organization; 2000.
+
     Args:
         bmi_value (float): BMI value
 
@@ -138,7 +152,11 @@ def bmi_with_category_cm(weight: float, height_cm: float) -> tuple[float, BMICat
 def bsa_dubois(weight: float, height: float) -> float:
     """
     Calculate BSA using DuBois formula.
-    BSA = 0.007184 x weight^0.425 x height^0.725
+    BSA = 0.007184 x weight^0.425 x height_cm^0.725
+
+    References:
+        Du Bois D, Du Bois EF. A formula to estimate the approximate surface area if height
+        and weight be known. Arch Intern Med. 1916;17:863-871.
 
     Args:
         weight (float): Weight in kilograms
@@ -158,6 +176,10 @@ def bsa_mosteller(weight: float, height: float) -> float:
     """
     Calculate BSA using Mosteller formula.
     BSA = sqrt((weight x height_cm) / 3600)
+
+    References:
+        Mosteller RD. Simplified calculation of body-surface area. N Engl J Med.
+        1987;317(17):1098. doi:10.1056/NEJM198710223171717
 
     Args:
         weight (float): Weight in kilograms
@@ -179,6 +201,11 @@ def bsa_haycock(weight: float, height: float) -> float:
     Calculate BSA using Haycock formula.
     BSA = 0.024265 x weight^0.5378 x height_cm^0.3964
 
+    References:
+        Haycock GB, Schwartz GJ, Wisotsky DH. Geometric method for measuring body surface
+        area: a height-weight formula validated in infants, children, and adults.
+        J Pediatr. 1978;93(1):62-66. doi:10.1016/s0022-3476(78)80601-5
+
     Args:
         weight (float): Weight in kilograms
         height (float): Height in meters
@@ -199,6 +226,10 @@ def bsa_gehan_george(weight: float, height: float) -> float:
     Calculate BSA using Gehan-George formula.
     BSA = 0.0235 x weight^0.51456 x height_cm^0.42246
 
+    References:
+        Gehan EA, George SL. Estimation of human body surface area from height and weight.
+        Cancer Chemother Rep. 1970;54(4):225-235.
+
     Args:
         weight (float): Weight in kilograms
         height (float): Height in meters
@@ -216,8 +247,12 @@ def bsa_gehan_george(weight: float, height: float) -> float:
 
 def bsa_boyd(weight: float, height: float) -> float:
     """
-    Calculate BSA using Boyd formula.
+    Calculate BSA using Boyd formula (weight in kg form).
     BSA = 0.03330 x weight^(0.6157 - 0.0188 x log10(weight)) x height_cm^0.3
+
+    References:
+        Boyd E. The Growth of the Surface Area of the Human Body. Minneapolis:
+        University of Minnesota Press; 1935.
 
     Args:
         weight (float): Weight in kilograms

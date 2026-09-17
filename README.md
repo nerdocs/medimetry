@@ -1,12 +1,22 @@
 # Medimetry
 
-Medical calculation library for clinical formulas and scores
+Reference implementations of published clinical formulas and scores, written in pure Python for software
+developers and researchers.
 
-This library provides formulas for estimatng or calculating risks with the help of medically relevant and
-often used algorithms.
+## Intended use
 
-They are tested intensively, but we can give no warranty that the results are correct. Especially, results must not
-be taken for granted as basis for clinical decision-making.
+medimetry reproduces formulas and scoring systems exactly as published in the cited literature (every function
+lists its primary source). It returns the raw numeric result or the category defined by that publication and
+nothing else: no interpretation, no recommendation, no clinical guidance.
+
+**medimetry is not a medical device.** It is not intended for diagnosis, prevention, monitoring, prediction,
+prognosis, treatment or alleviation of disease, and it must not be used as a basis for clinical decisions.
+Anyone integrating it into a product with such a purpose is the manufacturer of that product and is solely
+responsible for its qualification, validation and regulatory compliance (e.g. as software of unknown provenance
+under IEC 62304). See [DISCLAIMER.md](DISCLAIMER.md).
+
+The implementations are unit-tested against the published point tables and worked examples, but no clinical
+validation has been performed and no warranty of correctness is given.
 
 * Free software: MIT license
 
@@ -18,7 +28,7 @@ pip install medimetry
 
 You can also install the in-development version with::
 
-    pip install https://github.com/nerdocs/medimetry/-/archive/main/medimetry-main.zip
+    pip install https://github.com/nerdocs/medimetry/archive/refs/heads/main.zip
 
 
 ## Development
@@ -33,7 +43,7 @@ See [Contributing](CONTRIBUTING.md).
 | Renal Function (**renal**)                          | ✅ | Creatinine Clearance (Cockcroft-Gault)        | Estimate renal function (CrCl)                 |
 |                                                     | ✅ | CKD-EPI GFR Equations                         | Estimate GFR in CKD patients                   |
 |                                                     | ✅ | MDRD GFR Equation                             | Estimate GFR in CKD patients                   |
-|                                                     | ✅ | CKD Staging                                   | Estimate progression risk using GFR/ACR        |
+|                                                     | ✅ | CKD Staging                                   | KDIGO GFR/albuminuria/risk categories          |
 |                                                     |   | Fractional Excretion of Sodium (FENa)         | Differentiate renal failure type               |
 | Electrolytes (**lytes**)                            |   | Sodium Correction for Hyperglycemia           | Correct Na in hyperglycemia                    |
 |                                                     |   | Serum Osmolality/Osmolarity                   | Detect unmeasured serum compounds              |
@@ -43,7 +53,7 @@ See [Contributing](CONTRIBUTING.md).
 |                                                     | ✅ | CHA₂DS₂-VASc Score                            | Stroke risk in atrial fibrillation             |
 |                                                     |   | ASCVD 2013 Risk Calculator                    | 10-year risk of hard ASCVD                     |
 |                                                     |   | ASCVD Risk Algorithm with Known ASCVD         | 10-year risk & statin guidance                 |
-|                                                     |   | Framingham Risk Score for CHD                 | 10-year risk of heart attack                   |
+|                                                     | ✅ | Framingham General CVD Risk Score (2008)      | 10-year risk of cardiovascular disease         |
 |                                                     |   | HEART Score                                   | 6-week risk of major cardiac events            |
 |                                                     |   | GRACE ACS Risk and Mortality Calculator       | Mortality risk in ACS                          |
 |                                                     |   | Revised Cardiac Risk Index (Pre-op)           | Cardiac risk after noncardiac surgery          |
@@ -55,8 +65,8 @@ See [Contributing](CONTRIBUTING.md).
 |                                                     |   | HOMA-IR                                       | Insulin resistance estimate                    |
 |                                                     |   | Serum Anion Gap                               | Metabolic acidosis evaluation                  |
 | Pulmonary / Sleep                                   |   | Wells’ Criteria for PE                        | PE risk stratification                         |
-|                                                     | ✅ | Geneva Criteria                               | Rule out suspected PE                          |
-|                                                     | ✅ | PERC Rule                                     | Rule out PE                                    |
+|                                                     | ✅ | Revised / Simplified Geneva Score             | Clinical probability of PE                     |
+|                                                     | ✅ | PERC Rule                                     | PE rule-out criteria count                     |
 |                                                     |   | Wells’ Criteria for DVT                       | DVT risk assessment                            |
 |                                                     |   | STOP-BANG Score                               | Obstructive sleep apnea screening              |
 | Neurological / Stroke / Consciousness (**neuro**)   |   | NIH Stroke Scale (NIHSS)                      | Stroke severity & monitoring                   |

@@ -163,7 +163,7 @@ def test_framingham_risk_score_middle_aged_female_moderate_risk():
         age=55,
         gender=Gender.FEMALE,
         total_cholesterol=5.5,  # 5.20-6.2 mmol/l (3 points)
-        hdl_cholesterol=1.1,  # 0.9-1.2 mmol/l (-1 points)
+        hdl_cholesterol=1.1,  # 0.9-1.2 mmol/l (+1 point)
         systolic_bp=145,  # 140-150 mmHg untreated (2 points)
         bp_treatment=False,
         smoking=True,  # 3 points
@@ -171,11 +171,43 @@ def test_framingham_risk_score_middle_aged_female_moderate_risk():
     )
     # Age 55-59: 8 points
     # Total cholesterol 5.20-6.2: 3 points
-    # HDL 0.9-1.2: -1 points
+    # HDL 0.9-1.2: +1 point
     # SBP 140-150 (untreated): 2 points
     # Smoking: 3 points
     # No diabetes: 0 points
-    # Total: 15 points
-    assert points == 15
-    assert risk_percentage == 13.7  # 13.7% risk
+    # Total: 17 points
+    assert points == 17
+    assert risk_percentage == 18.5  # 18.5% risk
     assert risk_level == FraminghamRiskLevel.INTERMEDIATE
+
+
+@pytest.mark.parametrize(
+    ("hdl", "expected_points"),
+    [
+        (1.7, -2),  # > 1.6
+        (1.6, -1),  # 1.3-1.6
+        (1.3, -1),
+        (1.25, 0),  # 1.2-1.29
+        (1.2, 0),
+        (1.19, 1),  # 0.9-1.19
+        (0.9, 1),
+        (0.89, 2),  # < 0.9
+    ],
+)
+def test_framingham_hdl_bands(hdl, expected_points):
+    """HDL point bands per D'Agostino 2008, Table 4: -2, -1, 0, +1, +2."""
+    # Baseline: male, 30 y (0), TC 4.0 (0), SBP 125 untreated (0) -> only HDL contributes
+    points, _, _ = framingham_risk_score(age=30, gender=Gender.MALE, total_cholesterol=4.0, hdl_cholesterol=hdl, systolic_bp=125)
+    assert points == expected_points
+
+
+def test_framingham_paper_example_female():
+    """Worked example from D'Agostino 2008: 61-year-old woman, TC 180 mg/dl (4.66 mmol/l), HDL 47 mg/dl (1.22 mmol/l),
+    untreated SBP 124 mmHg, smoker, no diabetes -> 13 points, 10.0 %."""
+    points, risk, level = framingham_risk_score(
+        age=61, gender=Gender.FEMALE, total_cholesterol=4.66, hdl_cholesterol=1.22, systolic_bp=124, smoking=True
+    )
+    # age 60-64: 9, TC 4.1-5.19: 1, HDL 1.2-1.29: 0, SBP 120-129 untreated: 0, smoker: 3
+    assert points == 13
+    assert risk == 10.0
+    assert level == FraminghamRiskLevel.INTERMEDIATE

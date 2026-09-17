@@ -15,28 +15,28 @@ def test_mean_arterial_pressure_equal_values():
     """Test MAP calculation when systolic and diastolic pressures are equal."""
     with pytest.raises(
         ValueError,
-        match="Diastolic pressure must be greater than systolic pressure",
+        match="Diastolic pressure must be lower than systolic pressure",
     ):
         mean_arterial_pressure(100, 100)
 
 
 def test_mean_arterial_pressure_minimum_valid_values():
     """Test MAP calculation when both systolic and diastolic are zero."""
-    with pytest.raises(ValueError, match="Diastolic pressure must be non-negative"):
+    with pytest.raises(ValueError, match="Diastolic pressure must be positive"):
         mean_arterial_pressure(120, 0)
-    with pytest.raises(ValueError, match="Systolic pressure must be non-negative"):
+    with pytest.raises(ValueError, match="Systolic pressure must be positive"):
         mean_arterial_pressure(0, 120)
 
 
 def test_mean_arterial_pressure_negative_systolic():
     """Test MAP calculation raises assertion error when systolic pressure is negative."""
-    with pytest.raises(ValueError, match="Systolic pressure must be non-negative"):
+    with pytest.raises(ValueError, match="Systolic pressure must be positive"):
         mean_arterial_pressure(-10, 80)
 
 
 def test_mean_arterial_pressure_negative_diastolic():
     """Test MAP calculation raises assertion error when diastolic pressure is negative."""
-    with pytest.raises(ValueError, match="Diastolic pressure must be non-negative"):
+    with pytest.raises(ValueError, match="Diastolic pressure must be positive"):
         mean_arterial_pressure(120, -10)
 
 

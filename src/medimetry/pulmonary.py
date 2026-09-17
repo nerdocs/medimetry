@@ -4,168 +4,166 @@ from gettext import gettext as _
 
 
 class GenevaRiskLevel(Enum):
-    """Geneva score risk levels for pulmonary embolism."""
+    """Geneva score clinical probability categories for pulmonary embolism."""
 
-    LOW = _("Low")
-    INTERMEDIATE = _("Intermediate")
-    HIGH = _("High")
+    LOW = "low"
+    INTERMEDIATE = "intermediate"
+    HIGH = "high"
+
+
+geneva_risk_level_titles = {
+    GenevaRiskLevel.LOW: _("Low"),
+    GenevaRiskLevel.INTERMEDIATE: _("Intermediate"),
+    GenevaRiskLevel.HIGH: _("High"),
+}
 
 
 @dataclass
 class GenevaScore:
-    """Geneva score result for pulmonary embolism risk assessment."""
+    """Geneva score result: total points and the published three-level probability category."""
 
     score: int
     risk_level: GenevaRiskLevel
-    pe_probability: str
 
 
 @dataclass
 class PERCResult:
-    """PERC rule result for pulmonary embolism rule-out."""
+    """PERC rule result: number of positive criteria; ``positive`` is True if any criterion is met."""
 
     positive_criteria: int
     positive: bool
-    recommendation: str
-
-    def __bool__(self) -> bool:
-        return self.positive
 
 
-def geneva_score(
+def _validate_geneva_inputs(age: int, heart_rate: int) -> None:
+    if age <= 0:
+        raise ValueError("Age must be positive")
+    if heart_rate <= 0 or heart_rate > 300:
+        raise ValueError("Heart rate must be between 1 and 300 bpm")
+
+
+def geneva_simplified_score(
     age: int,
+    heart_rate: int,
     previous_pe_dvt: bool = False,
-    heart_rate_over_100: bool = False,
-    recent_surgery: bool = False,
+    recent_surgery_or_fracture: bool = False,
     hemoptysis: bool = False,
     active_cancer: bool = False,
     unilateral_leg_pain: bool = False,
-    unilateral_leg_edema: bool = False,
-    pain_on_palpation: bool = False,
+    leg_pain_on_palpation_and_edema: bool = False,
 ) -> GenevaScore:
     """
-    Calculate Geneva score for pulmonary embolism risk assessment.
+    Calculate the Simplified Revised Geneva Score for clinical probability of pulmonary embolism.
 
-    The Geneva score is a clinical prediction rule used to estimate the
-    probability of pulmonary embolism in patients with suspected PE.
-    This is the revised simplified Geneva Score version (Klok et al., 2008)
+    All items score 1 point except heart rate >= 95 bpm (2 points). Three-level
+    classification: 0-1 low, 2-4 intermediate, >= 5 high.
+
+    References:
+        Klok FA, et al. Simplification of the revised Geneva score for assessing clinical
+        probability of pulmonary embolism. Arch Intern Med. 2008;168(19):2131-2136.
+        doi:10.1001/archinte.168.19.2131
 
     Args:
-        age (int): Patient age in years
-        previous_pe_dvt (bool): Previous PE or DVT history
-        heart_rate_over_100 (bool): Heart rate > 100 bpm
-        recent_surgery (bool): Surgery or fracture within 1 month
-        hemoptysis (bool): Hemoptysis present
-        active_cancer (bool): Active cancer (treatment ongoing, within 6 months, or palliative)
+        age (int): Age in years (> 65 scores 1 point)
+        heart_rate (int): Heart rate in bpm (75-94: 1 point, >= 95: 2 points)
+        previous_pe_dvt (bool): Previous PE or DVT
+        recent_surgery_or_fracture (bool): Surgery or fracture within the last month
+        hemoptysis (bool): Hemoptysis
+        active_cancer (bool): Active malignant condition
         unilateral_leg_pain (bool): Unilateral lower limb pain
-        unilateral_leg_edema (bool): Unilateral lower limb edema and superficial venous dilatation
-        pain_on_palpation (bool): Pain on lower limb deep venous palpation
+        leg_pain_on_palpation_and_edema (bool): Pain on lower limb deep venous palpation
+            *and* unilateral edema (one combined item)
 
     Returns:
-        GenevaScore: Score result with risk level and probability
+        GenevaScore: Total points (0-9) and probability category
 
     Raises:
-        ValueError: If age is not positive
+        ValueError: If age or heart rate are out of range
+
+    >>> geneva_simplified_score(age=70, heart_rate=100, previous_pe_dvt=True).score
+    4
     """
-    if age <= 0:
-        raise ValueError("Age must be positive")
+    _validate_geneva_inputs(age, heart_rate)
 
     score = 0
-
-    # Age scoring
-    if 60 <= age <= 79:
+    if age > 65:
         score += 1
-    elif age >= 80:
+    if 75 <= heart_rate <= 94:
+        score += 1
+    elif heart_rate >= 95:
         score += 2
+    for item in (
+        previous_pe_dvt,
+        recent_surgery_or_fracture,
+        hemoptysis,
+        active_cancer,
+        unilateral_leg_pain,
+        leg_pain_on_palpation_and_edema,
+    ):
+        if item:
+            score += 1
 
-    # Clinical factors (each worth 1 point)
-    if previous_pe_dvt:
-        score += 1
-    if heart_rate_over_100:
-        score += 1
-    if recent_surgery:
-        score += 1
-    if hemoptysis:
-        score += 1
-    if active_cancer:
-        score += 1
-    if unilateral_leg_pain:
-        score += 1
-    if unilateral_leg_edema:
-        score += 1
-    if pain_on_palpation:
-        score += 1
-
-    # Determine risk level and probability
-    if score <= 3:
+    if score <= 1:
         risk_level = GenevaRiskLevel.LOW
-        probability = "8%"
-    elif score <= 8:
+    elif score <= 4:
         risk_level = GenevaRiskLevel.INTERMEDIATE
-        probability = "28%"
     else:
         risk_level = GenevaRiskLevel.HIGH
-        probability = "74%"
 
-    return GenevaScore(score=score, risk_level=risk_level, pe_probability=probability)
+    return GenevaScore(score=score, risk_level=risk_level)
 
 
 def geneva_revised_score(
     age: int,
+    heart_rate: int,
     previous_pe_dvt: bool = False,
-    heart_rate: int | None = None,
-    recent_surgery: bool = False,
+    recent_surgery_or_fracture: bool = False,
     hemoptysis: bool = False,
     active_cancer: bool = False,
     unilateral_leg_pain: bool = False,
-    unilateral_leg_edema: bool = False,
-    pain_on_palpation: bool = False,
+    leg_pain_on_palpation_and_edema: bool = False,
 ) -> GenevaScore:
     """
-    Calculate Revised Geneva score for pulmonary embolism risk assessment.
+    Calculate the Revised Geneva Score for clinical probability of pulmonary embolism.
 
-    This Revised Geneva score (Le Gal et al., 2006) uses more specific heart rate
-    thresholds compared to the original Geneva score.
+    Three-level classification: 0-3 low, 4-10 intermediate, >= 11 high.
+
+    References:
+        Le Gal G, et al. Prediction of pulmonary embolism in the emergency department:
+        the revised Geneva score. Ann Intern Med. 2006;144(3):165-171.
+        doi:10.7326/0003-4819-144-3-200602070-00004
 
     Args:
-        age (int): Patient age in years
-        previous_pe_dvt (bool): Previous PE or DVT history
-        heart_rate (Optional[int]): Heart rate in bpm (if None, assumed normal)
-        recent_surgery (bool): Surgery or fracture within 1 month
-        hemoptysis (bool): Hemoptysis present
-        active_cancer (bool): Active cancer
-        unilateral_leg_pain (bool): Unilateral lower limb pain
-        unilateral_leg_edema (bool): Unilateral lower limb edema
-        pain_on_palpation (bool): Pain on lower limb deep venous palpation
+        age (int): Age in years (> 65 scores 1 point)
+        heart_rate (int): Heart rate in bpm (75-94: 3 points, >= 95: 5 points)
+        previous_pe_dvt (bool): Previous PE or DVT (3 points)
+        recent_surgery_or_fracture (bool): Surgery or fracture within the last month (2 points)
+        hemoptysis (bool): Hemoptysis (2 points)
+        active_cancer (bool): Active malignant condition (2 points)
+        unilateral_leg_pain (bool): Unilateral lower limb pain (3 points)
+        leg_pain_on_palpation_and_edema (bool): Pain on lower limb deep venous palpation
+            *and* unilateral edema (one combined item, 4 points)
 
     Returns:
-        GenevaScore: Score result with risk level and probability
+        GenevaScore: Total points (0-22) and probability category
 
     Raises:
-        ValueError: If age is not positive or heart rate is invalid
+        ValueError: If age or heart rate are out of range
+
+    >>> geneva_revised_score(age=70, heart_rate=100, previous_pe_dvt=True).score
+    9
     """
-    if age <= 0:
-        raise ValueError("Age must be positive")
-    if heart_rate is not None and (heart_rate <= 0 or heart_rate > 300):
-        raise ValueError("Heart rate must be between 1 and 300 bpm")
+    _validate_geneva_inputs(age, heart_rate)
 
     score = 0
-
-    # Age scoring
-    if age >= 65:
+    if age > 65:
         score += 1
-
-    # Heart rate scoring (more specific than original)
-    if heart_rate is not None:
-        if 75 <= heart_rate <= 94:
-            score += 3
-        elif heart_rate >= 95:
-            score += 5
-
-    # Clinical factors
+    if 75 <= heart_rate <= 94:
+        score += 3
+    elif heart_rate >= 95:
+        score += 5
     if previous_pe_dvt:
         score += 3
-    if recent_surgery:
+    if recent_surgery_or_fracture:
         score += 2
     if hemoptysis:
         score += 2
@@ -173,23 +171,17 @@ def geneva_revised_score(
         score += 2
     if unilateral_leg_pain:
         score += 3
-    if unilateral_leg_edema:
-        score += 4
-    if pain_on_palpation:
+    if leg_pain_on_palpation_and_edema:
         score += 4
 
-    # Determine risk level and probability
     if score <= 3:
         risk_level = GenevaRiskLevel.LOW
-        probability = "8%"
     elif score <= 10:
         risk_level = GenevaRiskLevel.INTERMEDIATE
-        probability = "28%"
     else:
         risk_level = GenevaRiskLevel.HIGH
-        probability = "74%"
 
-    return GenevaScore(score=score, risk_level=risk_level, pe_probability=probability)
+    return GenevaScore(score=score, risk_level=risk_level)
 
 
 def perc_rule(
@@ -200,30 +192,38 @@ def perc_rule(
     hemoptysis: bool = False,
     recent_surgery_trauma: bool = False,
     prior_pe_dvt: bool = False,
-    hormone_use: bool = False,
+    exogenous_estrogen: bool = False,
 ) -> PERCResult:
     """
-    Calculate PERC (Pulmonary Embolism Rule-out Criteria) rule.
+    Evaluate the PERC (Pulmonary Embolism Rule-out Criteria) rule.
 
-    The PERC rule is used to rule out pulmonary embolism in low-risk patients
-    without further testing. If all 8 criteria are negative (PERC negative),
-    PE can be ruled out without D-dimer or imaging in low-risk patients.
+    The rule counts eight criteria; it is "negative" only if none of them is met.
+    Interpretation of a negative or positive result is outside the scope of this
+    function.
+
+    References:
+        Kline JA, et al. Clinical criteria to prevent unnecessary diagnostic testing in
+        emergency department patients with suspected pulmonary embolism.
+        J Thromb Haemost. 2004;2(8):1247-1255. doi:10.1111/j.1538-7836.2004.00790.x
 
     Args:
-        age (int): Patient age in years
-        heart_rate (int): Heart rate in bpm
-        oxygen_saturation (float): Oxygen saturation as percentage (e.g., 98.5)
-        unilateral_leg_swelling (bool): Unilateral leg swelling present
-        hemoptysis (bool): Hemoptysis present
-        recent_surgery_trauma (bool): Recent surgery or trauma (within 4 weeks)
-        prior_pe_dvt (bool): Prior history of PE or DVT
-        hormone_use (bool): Hormone use (oral contraceptives, hormone replacement, pregnancy)
+        age (int): Age in years (criterion: >= 50)
+        heart_rate (int): Heart rate in bpm (criterion: >= 100)
+        oxygen_saturation (float): Oxygen saturation on room air in percent (criterion: < 95)
+        unilateral_leg_swelling (bool): Unilateral leg swelling
+        hemoptysis (bool): Hemoptysis
+        recent_surgery_trauma (bool): Surgery or trauma requiring hospitalization within 4 weeks
+        prior_pe_dvt (bool): Prior PE or DVT
+        exogenous_estrogen (bool): Exogenous estrogen use (oral contraceptives, hormone replacement)
 
     Returns:
-        PERCResult: Result with number of positive criteria and recommendation
+        PERCResult: Number of positive criteria and whether any criterion is positive
 
     Raises:
         ValueError: If age, heart rate, or oxygen saturation are invalid
+
+    >>> perc_rule(age=30, heart_rate=80, oxygen_saturation=98.0)
+    PERCResult(positive_criteria=0, positive=False)
     """
     if age <= 0:
         raise ValueError("Age must be positive")
@@ -232,36 +232,16 @@ def perc_rule(
     if oxygen_saturation <= 0 or oxygen_saturation > 100:
         raise ValueError("Oxygen saturation must be between 0 and 100%")
 
-    criteria_count = 0
-
-    # PERC criteria (each criterion adds 1 if positive)
-    if age >= 50:
-        criteria_count += 1
-    if heart_rate >= 100:
-        criteria_count += 1
-    if oxygen_saturation < 95.0:
-        criteria_count += 1
-    if unilateral_leg_swelling:
-        criteria_count += 1
-    if hemoptysis:
-        criteria_count += 1
-    if recent_surgery_trauma:
-        criteria_count += 1
-    if prior_pe_dvt:
-        criteria_count += 1
-    if hormone_use:
-        criteria_count += 1
-
-    # PERC is positive if any criteria are positive
-    perc_positive = criteria_count > 0
-
-    if not perc_positive:
-        recommendation = _("PERC negative - PE can be ruled out without further testing in low-risk patients")
-    else:
-        recommendation = _("PERC positive ({criteria_count} criteria) - Further evaluation needed").format(criteria_count=criteria_count)
-
-    return PERCResult(
-        positive_criteria=criteria_count,
-        positive=perc_positive,
-        recommendation=recommendation,
+    criteria = (
+        age >= 50,
+        heart_rate >= 100,
+        oxygen_saturation < 95.0,
+        unilateral_leg_swelling,
+        hemoptysis,
+        recent_surgery_trauma,
+        prior_pe_dvt,
+        exogenous_estrogen,
     )
+    criteria_count = sum(1 for c in criteria if c)
+
+    return PERCResult(positive_criteria=criteria_count, positive=criteria_count > 0)

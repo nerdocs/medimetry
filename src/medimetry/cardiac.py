@@ -9,10 +9,19 @@ def qtc_correction(
     """
     Calculate corrected QT interval (QTc) using various correction formulas.
 
+    References:
+        Bazett HC. An analysis of the time-relations of electrocardiograms. Heart. 1920;7:353-370.
+        Fridericia LS. Die Systolendauer im Elektrokardiogramm bei normalen Menschen und bei
+        Herzkranken. Acta Med Scand. 1920;53:469-486.
+        Sagie A, et al. An improved method for adjusting the QT interval for heart rate
+        (the Framingham Heart Study). Am J Cardiol. 1992;70(7):797-801.
+        Hodges M, et al. Bazett's QT correction reviewed: evidence that a linear QT correction
+        for heart rate is better. J Am Coll Cardiol. 1983;1:694.
+
     Args:
         qt_interval (float): QT interval in milliseconds
         heart_rate (int): Heart rate in beats per minute
-        formula (str): Correction formula to use (QtcCorrectionType.BAZETT,
+        formula (QtcCorrectionType): Correction formula to use (QtcCorrectionType.BAZETT,
         QtcCorrectionType.FRIDERICIA, QtcCorrectionType.FRAMINGHAM,
         QtcCorrectionType.HODGES)
 

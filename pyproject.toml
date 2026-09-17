@@ -8,20 +8,19 @@ name = "medimetry"
 version = "0.0.1"
 license = "MIT"
 license-files = ["LICENSE"]
-description = "Medical calculation library for clinical formulas and scores"
+description = "Reference implementations of published clinical formulas and scores for developers (not a medical device)"
 authors = [{ name = "Christian Gonzalez", email = "office@nerdocs.at" }]
 classifiers = [
   # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
-  "Development Status :: 5 - Production/Stable",
+  "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
   "Operating System :: Unix",
   "Operating System :: POSIX",
   "Operating System :: Microsoft :: Windows",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -48,7 +47,7 @@ test = ["pytest"]
 
 [project.urls]
 "Sources" = "https://github.com/nerdocs/medimetry"
-"Changelog" = "https://github.com/nerdocs/medimetry/blob/master/CHANGELOG.md"
+"Changelog" = "https://github.com/nerdocs/medimetry/blob/main/CHANGELOG.md"
 "Issue Tracker" = "https://github.com/nerdocs/medimetry/issues"
 
 [tool.setuptools.dynamic]

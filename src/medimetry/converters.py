@@ -1,3 +1,4 @@
+from calendar import monthrange
 from datetime import UTC
 from datetime import date
 from datetime import datetime
@@ -31,32 +32,23 @@ def dob2age_tuple(dob: date, given_date: date | None = None) -> tuple[int, int, 
 
     Returns:
         tuple: Age as (years, months, days)
+
+    >>> from datetime import date
+    >>> dob2age_tuple(date(2025, 1, 31), date(2025, 3, 1))
+    (0, 1, 1)
     """
     today: date = given_date or datetime.now(UTC).date()
 
-    years = today.year - dob.year
-    months = today.month - dob.month
-    days = today.day - dob.day
+    # Number of whole months between dob and today
+    total_months = (today.year - dob.year) * 12 + today.month - dob.month
+    if today.day < dob.day:
+        total_months -= 1
+    years, months = divmod(total_months, 12)
 
-    # Adjust for negative days
-    if days < 0:
-        months -= 1
-        # Get days in previous month
-        if today.month == 1:
-            prev_month_year = today.year - 1
-            prev_month = 12
-        else:
-            prev_month_year = today.year
-            prev_month = today.month - 1
-
-        from calendar import monthrange
-
-        days_in_prev_month = monthrange(prev_month_year, prev_month)[1]
-        days += days_in_prev_month
-
-    # Adjust for negative months
-    if months < 0:
-        years -= 1
-        months += 12
+    # Anchor = dob shifted by the whole months, day clamped to the target month's length
+    anchor_year = dob.year + (dob.month - 1 + total_months) // 12
+    anchor_month = (dob.month - 1 + total_months) % 12 + 1
+    anchor_day = min(dob.day, monthrange(anchor_year, anchor_month)[1])
+    days = (today - date(anchor_year, anchor_month, anchor_day)).days
 
     return (years, months, days)

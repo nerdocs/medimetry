@@ -35,6 +35,10 @@ def child_pugh_score(
     """
     Calculate Child-Pugh score for liver disease severity assessment.
 
+    References:
+        Pugh RN, et al. Transection of the oesophagus for bleeding oesophageal varices.
+        Br J Surg. 1973;60(8):646-649. doi:10.1002/bjs.1800600817
+
     Args:
         bilirubin (float): Total bilirubin in mg/dl
         albumin (float): Serum albumin in g/dl

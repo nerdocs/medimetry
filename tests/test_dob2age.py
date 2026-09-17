@@ -337,3 +337,13 @@ def test_dob2age_tuple_uses_today_when_given_date_is_none():
         # Verify datetime.now().date() was called
         mock_datetime.now.assert_called_once()
         mock_datetime.now.return_value.date.assert_called_once()
+
+
+def test_dob2age_tuple_short_previous_month_never_yields_negative_days():
+    """Born Jan 31, reference Mar 1: the shorter February must not produce negative days."""
+    from datetime import date
+
+    from medimetry.converters import dob2age_tuple
+
+    assert dob2age_tuple(date(2025, 1, 31), date(2025, 3, 1)) == (0, 1, 1)
+    assert dob2age_tuple(date(2024, 12, 31), date(2025, 3, 1)) == (0, 2, 1)
