@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`medimetry` is a pure-Python library of reference implementations of published clinical formulas and scores (renal, cardiovascular, anthropometric, metabolic, neuro, pulmonary, cardiac, electrolytes). Single runtime dependency: `labunits`. WHO growth tables are bundled under `src/medimetry/data/anthropometric/` but not yet used by any code.
+`medimetry` is a pure-Python library of reference implementations of published clinical formulas and scores (renal, cardiovascular, anthropometric, metabolic, neuro, pulmonary, cardiac, electrolytes). Single runtime dependency: `labunits`. CDC 2000 growth tables are bundled under `src/medimetry/data/cdc/`.
 
 **Not a medical device** — see `DISCLAIMER.md`. Functions return only what the cited publication defines (value, category); never add interpretive or recommendation text to outputs.
 
@@ -56,6 +56,7 @@ Flat domain-module layout — there is no class hierarchy, no plugin system, no 
 - `renal.py` — ACR (mg/g), Cockcroft-Gault, MDRD, CKD-EPI (2021, with/without cystatin C), KDIGO staging (`ckd_stage` returns `(GFR category, albuminuria category, KDIGO risk category 1-4)` using `kdigo_risk_matrix`)
 - `cardiovasc.py` — MAP, CHA₂DS₂-VASc, Framingham General CVD 2008
 - `anthropometric.py` — BMI, BSA (multiple formulas via `BSAFormula` enum)
+- `growth.py` — pediatric growth charts: LMS z-score/percentile, `GrowthReference.CDC | WHO`, `GrowthIndicator`, `download_who_tables()`; see `docs/growth.md`
 - `cardiac.py` — QTc (Bazett/Fridericia/Framingham/Hodges via `QtcCorrectionType`)
 - `neuro.py` — GCS (raises if a component is NOT_TESTABLE)
 - `pulmonary.py` — Simplified and Revised Geneva, PERC
@@ -70,6 +71,7 @@ Cross-cutting conventions:
 - `Gender` (enum) is always passed as the enum, never as a string. Functions check `isinstance(x, Gender)`.
 - User-visible strings are wrapped with `gettext` (`_(...)`) for i18n, even though no translations are shipped yet. Enum values are plain identifiers; translated titles live in `*_titles` dicts next to the enum.
 - Every public function docstring has a `References:` block citing the primary publication.
+- Growth-table data policy: CDC 2000 tables are bundled (`data/cdc/`, regenerate with `scripts/update_cdc_tables.py`). **WHO tables are never committed** (CC BY-NC-SA license); users download them with `download_who_tables()`. Both use the canonical `key;L;M;S` CSV layout.
 - Units are documented per-arg in docstrings (e.g. creatinine always mg/dl, GFR always ml/min/1.73m²).
 
 ## Project-specific rules

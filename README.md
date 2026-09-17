@@ -31,6 +31,21 @@ You can also install the in-development version with::
     pip install https://github.com/nerdocs/medimetry/archive/refs/heads/main.zip
 
 
+## Growth charts and WHO reference tables
+
+`medimetry.growth` computes pediatric z-scores/percentiles from LMS tables. The CDC 2000 tables (public domain) are
+bundled. The WHO Child Growth Standards / Growth Reference 2007 are licensed CC BY-NC-SA 3.0 IGO and cannot be
+redistributed in an MIT package, so download them yourself once:
+
+```python
+from pathlib import Path
+from medimetry.growth import download_who_tables
+download_who_tables(Path("~/.cache/medimetry/who").expanduser())
+```
+
+Then pass `reference=GrowthReference.WHO, data_dir=...` to `growth_zscore` / `growth_percentile`.
+See [docs/growth.md](docs/growth.md) for indicators, units and limitations.
+
 ## Development
 
 See [Contributing](CONTRIBUTING.md).
@@ -74,6 +89,7 @@ See [Contributing](CONTRIBUTING.md).
 |                                                     |   | PECARN Pediatric Head Injury                  | Brain imaging need after pediatric head injury |
 |                                                     |   | CURB-65 Score                                 | Pneumonia severity & mortality                 |
 | Body Metrics                                        | ✅ | BMI and BSA                                   | Body mass and surface area                     |
+|                                                     | ✅ | Growth charts (CDC 2000 / WHO 2006+2007)      | Pediatric z-scores and percentiles (LMS)       |
 |                                                     |   | Ideal & Adjusted Body Weight                  | Weight assessment for dosing/therapy           |
 |                                                     |   | Maintenance Fluids Calculations               | Calculate fluid needs                          |
 | Cardiac / ECG  (**cardiac**)                        | ✅ | Corrected QT Interval (QTc)                   | Correct QT for heart rate extremes             |
