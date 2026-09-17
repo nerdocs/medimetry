@@ -4,7 +4,7 @@
 uses semantic versioning
 
 
-## [Unreleased]
+## [0.1.0] - 2026-09-17
 
 * ACR: urine albumin/creatinine in mg/g (was a unitless ratio, 1000x off vs. KDIGO thresholds)
 * ckd_stage: third element is now the KDIGO heat-map risk category (1-4); "checks per year" removed
@@ -18,6 +18,7 @@ uses semantic versioning
 * Add DISCLAIMER.md, intended-use statement, literature references per function; classifier Alpha
 * Remove labunits tests; labunits stays the single runtime dependency
 * Add growth charts (growth.py): LMS z-score/percentile, CDC 2000 bundled, WHO 2006/2007 via download_who_tables
+* download_who_tables raises WhoDownloadError listing every failed URL with HTTP status
 * Remove bundled WHO tables from the package and from git history (WHO license is CC BY-NC-SA, not MIT-compatible)
 
 ## [0.0.1] - 2025-10-03
