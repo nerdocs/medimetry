@@ -57,6 +57,7 @@ See [Contributing](CONTRIBUTING.md).
 |-----------------------------------------------------|---|-----------------------------------------------|------------------------------------------------|
 | Renal Function (**renal**)                          | ✅ | Creatinine Clearance (Cockcroft-Gault)        | Estimate renal function (CrCl)                 |
 |                                                     | ✅ | CKD-EPI GFR Equations                         | Estimate GFR in CKD patients                   |
+|                                                     | ✅ | EKFC GFR Equation                             | Estimate GFR across the full age spectrum      |
 |                                                     | ✅ | MDRD GFR Equation                             | Estimate GFR in CKD patients                   |
 |                                                     | ✅ | CKD Staging                                   | KDIGO GFR/albuminuria/risk categories          |
 |                                                     |   | Fractional Excretion of Sodium (FENa)         | Differentiate renal failure type               |

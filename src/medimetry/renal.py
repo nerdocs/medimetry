@@ -1,3 +1,4 @@
+import math
 from gettext import gettext as _
 
 from medimetry.constants import EthnicalRace
@@ -196,6 +197,78 @@ def ckd_epi(creatinine: float, age: int, gender: Gender, cystatin_c: float | Non
             * (0.9961**age)
             * gender_factor
         )
+
+
+def _ekfc(ratio: float, age: float) -> float:
+    """EKFC core: 107.3 x (biomarker/Q)^alpha x 0.990^(age-40) above 40 years."""
+    egfr = 107.3 * ratio ** (-0.322 if ratio < 1 else -1.132)
+    if age > 40:
+        egfr *= 0.990 ** (age - 40)
+    return egfr
+
+
+def ekfc(creatinine: float, age: float, gender: Gender, cystatin_c: float | None = None) -> float:
+    """
+    Calculate eGFR using the EKFC (European Kidney Function Consortium) equation.
+
+    The equation covers the full age spectrum (from 2 years on) with one formula: serum
+    creatinine is rescaled by Q, the median creatinine of healthy persons of the same age
+    and sex. Q is a polynomial in age for 2-25 years, and 80 µmol/l (men) or 62 µmol/l
+    (women) above 25 years. The creatinine is converted to µmol/l internally, as Q is
+    published in µmol/l.
+
+    If cystatin C is given, the result is the arithmetic mean of the creatinine-based and
+    the cystatin C-based EKFC equation, as proposed by Pottel et al. (2023). The cystatin C
+    equation uses Q = 0.83 mg/l below 50 years and 0.83 + 0.005 x (age - 50) mg/l above,
+    regardless of sex.
+
+    The equation was developed in white European populations and is not validated for
+    Black patients.
+
+    References:
+        Pottel H, et al. Development and Validation of a Modified Full Age Spectrum
+        Creatinine-Based Equation to Estimate Glomerular Filtration Rate.
+        Ann Intern Med. 2021;174(2):183-191. doi:10.7326/M20-4366
+
+        Pottel H, et al. Cystatin C-Based Equation to Estimate GFR without the Inclusion of
+        Race and Sex. N Engl J Med. 2023;388(4):333-343. doi:10.1056/NEJMoa2203769
+
+    Args:
+        creatinine (float): Serum creatinine in mg/dl
+        age (float): Age in years (fractions are significant for children)
+        gender (Gender): Gender.MALE or Gender.FEMALE
+        cystatin_c (float, optional): Serum cystatin C in mg/l - if given, the mean of the
+                creatinine and the cystatin C equation is returned
+
+    Returns:
+        float: Estimated GFR in mL/min/1.73m²
+
+    >>> round(ekfc(creatinine=1.0, age=50, gender=Gender.MALE), 1)
+    86.7
+    """
+    assert creatinine > 0, "Creatinine must be positive"
+    if not isinstance(gender, Gender):
+        raise TypeError("Gender must be of type 'Gender'")
+    if cystatin_c is not None:
+        assert cystatin_c > 0, "Cystatin C must be positive, if given"
+    if age < 2:
+        raise ValueError(f"EKFC is only defined from 2 years of age: {age}")
+
+    if age <= 25:
+        if gender == Gender.FEMALE:
+            q = math.exp(3.080 + 0.177 * age - 0.223 * math.log(age) - 0.00596 * age**2 + 0.0000686 * age**3)
+        else:
+            q = math.exp(3.200 + 0.259 * age - 0.543 * math.log(age) - 0.00763 * age**2 + 0.0000790 * age**3)
+    else:
+        q = 62.0 if gender == Gender.FEMALE else 80.0
+
+    # Q is published in µmol/l
+    egfr_cr = _ekfc(creatinine * 88.4 / q, age)
+    if cystatin_c is None:
+        return egfr_cr
+
+    q_cys = 0.83 if age < 50 else 0.83 + 0.005 * (age - 50)
+    return (egfr_cr + _ekfc(cystatin_c / q_cys, age)) / 2
 
 
 gfr_category_titles = {
