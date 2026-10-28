@@ -46,6 +46,8 @@ download_who_tables(Path("~/.cache/medimetry/who").expanduser())
 Then pass `reference=GrowthReference.WHO, data_dir=...` to `growth_zscore` / `growth_percentile`.
 See [docs/growth.md](docs/growth.md) for indicators, units and limitations.
 
+See [docs/references.md](docs/references.md) for how the cited sources were verified.
+
 ## Development
 
 See [Contributing](CONTRIBUTING.md).

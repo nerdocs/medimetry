@@ -225,7 +225,7 @@ def ekfc(creatinine: float, age: float, gender: Gender, cystatin_c: float | None
     If cystatin C is given, the result is the arithmetic mean of the creatinine-based and
     the cystatin C-based EKFC equation, as proposed by Pottel et al. (2023). The cystatin C
     equation uses Q = 0.83 mg/l below 50 years and 0.83 + 0.005 x (age - 50) mg/l above,
-    regardless of sex.
+    regardless of sex. The same Q of 0.83 mg/l is used for children (Pottel et al., 2024).
 
     The equation was developed in white European populations and is not validated for
     Black patients.
@@ -237,6 +237,9 @@ def ekfc(creatinine: float, age: float, gender: Gender, cystatin_c: float | None
 
         Pottel H, et al. Cystatin C-Based Equation to Estimate GFR without the Inclusion of
         Race and Sex. N Engl J Med. 2023;388(4):333-343. doi:10.1056/NEJMoa2203769
+
+        Pottel H, et al. Extending the cystatin C based EKFC-equation to children - validation
+        results from Europe. Pediatr Nephrol. 2024;39(4):1177-1183. doi:10.1007/s00467-023-06192-6
 
     Args:
         creatinine (float): Serum creatinine in mg/dl

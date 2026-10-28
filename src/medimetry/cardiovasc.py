@@ -208,16 +208,17 @@ def framingham_risk_score(
         else:  # 30-34
             pass
 
-    # Total cholesterol points
-    if total_cholesterol < 4.1:
+    # Total cholesterol points, bands as published in mg/dl
+    total_cholesterol_mg_dl = total_cholesterol * 38.67
+    if total_cholesterol_mg_dl < 160:
         pass
-    elif 4.1 <= total_cholesterol < 5.20:
+    elif total_cholesterol_mg_dl < 200:
         points += 1
-    elif 5.20 <= total_cholesterol < 6.2:
+    elif total_cholesterol_mg_dl < 240:
         points += 2 if gender == Gender.MALE else 3
-    elif 6.2 <= total_cholesterol < 7.2:
+    elif total_cholesterol_mg_dl < 280:
         points += 3 if gender == Gender.MALE else 4
-    else:  # chol > 7.2 mmol/l
+    else:
         points += 4 if gender == Gender.MALE else 5
 
     # HDL cholesterol points (same for both sexes), bands as published in mg/dl

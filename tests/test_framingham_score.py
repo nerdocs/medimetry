@@ -114,7 +114,7 @@ def test_framingham_risk_score_male_minimum_age_no_risk_factors():
     points, risk_percentage, risk_level = framingham_risk_score(
         age=30,
         gender=Gender.MALE,
-        total_cholesterol=4.0,  # Below 4.1 mmol/l (0 points)
+        total_cholesterol=4.0,  # < 160 mg/dl (4.14 mmol/l): 0 points
         hdl_cholesterol=1.7,  # Above 1.6 mmol/l (-2 points)
         systolic_bp=110,  # Below 120 mmHg (-2 points)
         bp_treatment=False,
@@ -138,7 +138,7 @@ def test_framingham_risk_score_female_maximum_age_all_risk_factors():
     points, risk_percentage, risk_level = framingham_risk_score(
         age=79,
         gender=Gender.FEMALE,
-        total_cholesterol=8.0,  # >7.2 mmol/l (5 points)
+        total_cholesterol=8.0,  # >= 280 mg/dl (7.24 mmol/l): 5 points
         hdl_cholesterol=0.8,  # <0.9 mmol/l (2 points)
         systolic_bp=170,  # >=160 mmHg treated (7 points)
         bp_treatment=True,
@@ -162,7 +162,7 @@ def test_framingham_risk_score_middle_aged_female_moderate_risk():
     points, risk_percentage, risk_level = framingham_risk_score(
         age=55,
         gender=Gender.FEMALE,
-        total_cholesterol=5.5,  # 5.20-6.2 mmol/l (3 points)
+        total_cholesterol=5.5,  # 200-239 mg/dl: 3 points
         hdl_cholesterol=1.1,  # 0.9-1.2 mmol/l (+1 point)
         systolic_bp=145,  # 140-150 mmHg untreated (2 points)
         bp_treatment=False,
@@ -201,13 +201,33 @@ def test_framingham_hdl_bands(hdl, expected_points):
     assert points == expected_points
 
 
+@pytest.mark.parametrize(
+    ("tc", "expected_points"),
+    [
+        (4.13, 0),  # < 160 mg/dl (4.14 mmol/l)
+        (4.14, 1),  # 160-199 mg/dl
+        (5.17, 1),
+        (5.18, 2),  # 200-239 mg/dl (5.17 mmol/l)
+        (6.20, 2),
+        (6.21, 3),  # 240-279 mg/dl (6.21 mmol/l)
+        (7.24, 3),
+        (7.25, 4),  # >= 280 mg/dl (7.24 mmol/l)
+    ],
+)
+def test_framingham_total_cholesterol_bands(tc, expected_points):
+    """Male total cholesterol point bands per D'Agostino 2008, Table 4: 0, +1, +2, +3, +4."""
+    # Baseline: male, 30 y (0), HDL 1.2 (0), SBP 125 untreated (0) -> only TC contributes
+    points, _, _ = framingham_risk_score(age=30, gender=Gender.MALE, total_cholesterol=tc, hdl_cholesterol=1.2, systolic_bp=125)
+    assert points == expected_points
+
+
 def test_framingham_paper_example_female():
     """Worked example from D'Agostino 2008: 61-year-old woman, TC 180 mg/dl (4.66 mmol/l), HDL 47 mg/dl (1.22 mmol/l),
     untreated SBP 124 mmHg, smoker, no diabetes -> 13 points, 10.0 %."""
     points, risk, level = framingham_risk_score(
         age=61, gender=Gender.FEMALE, total_cholesterol=4.66, hdl_cholesterol=1.22, systolic_bp=124, smoking=True
     )
-    # age 60-64: 9, TC 4.1-5.19: 1, HDL 1.2-1.29: 0, SBP 120-129 untreated: 0, smoker: 3
+    # age 60-64: 9, TC 160-199 mg/dl: 1, HDL 45-49 mg/dl: 0, SBP 120-129 untreated: 0, smoker: 3
     assert points == 13
     assert risk == 10.0
     assert level == FraminghamRiskLevel.INTERMEDIATE
