@@ -9,7 +9,7 @@ def test_mdrd_male_normal_creatinine():
     """Test MDRD formula for male patient with normal creatinine levels."""
     # 50-year-old male, creatinine 1.0 mg/dl, other race
     result = mdrd(creatinine=1.0, age=50, gender=Gender.MALE, race=EthnicalRace.OTHER)
-    expected = 175 * (1.0**-1.154) * (50**-0.203)  # ~79.7 mL/min/1.73m²
+    expected = 175 * (1.0**-1.154) * (50**-0.203)  # ~79.1 mL/min/1.73m²
     assert abs(result - expected) < 0.1
     assert 75 < result < 85  # Should be in normal range
 
@@ -43,9 +43,9 @@ def test_mdrd_african_american_female():
     """Test MDRD formula for African American female with both correction factors."""
     # 50-year-old African American female, creatinine 1.2 mg/dl
     result = mdrd(creatinine=1.2, age=50, gender=Gender.FEMALE, race=EthnicalRace.AFRICAN_AMERICAN)
-    # Base: 175 * (1.2)^-1.154 * (50)^-0.203 = 175 * 0.8676 * 0.4472 = 67.88
-    # Female factor: 67.88 * 0.742 = 50.37
-    # African American factor: 50.37 * 1.212 = 61.05
+    # Base: 175 * (1.2)^-1.154 * (50)^-0.203 = 175 * 0.8103 * 0.4520 = 64.09
+    # Female factor: 64.09 * 0.742 = 47.55
+    # African American factor: 47.55 * 1.212 = 57.6
     expected = 57.6
     assert abs(result - expected) < 0.1
 
@@ -79,6 +79,11 @@ def test_mdrd_elderly_over_100():
     # 105-year-old male, creatinine 1.2 mg/dl
     result = mdrd(creatinine=1.2, age=105, gender=Gender.MALE)
     # Manual calculation: 175 * (1.2)^-1.154 * (105)^-0.203
-    # = 175 * 0.8551 * 0.3147 ≈ 47.1
+    # = 175 * 0.8103 * 0.3888 ≈ 55.1
     assert 55.1 < result < 55.2
     assert isinstance(result, float)
+
+
+def test_mdrd_diverse_gender():
+    with pytest.raises(ValueError):
+        mdrd(creatinine=1.0, age=50, gender=Gender.DIVERSE)

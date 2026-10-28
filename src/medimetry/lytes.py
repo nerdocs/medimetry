@@ -2,7 +2,7 @@ def calcium_correction(total_calcium: float, albumin: float) -> float:
     """
     Calculate albumin-corrected total serum calcium.
 
-    Uses the formula: Corrected Ca = Total Ca + 0.8 x (4.0 - Albumin)
+    Uses the formula: Corrected Ca = Total Ca - Albumin + 4.0 (Payne 1973)
 
     References:
         Payne RB, et al. Interpretation of serum calcium in patients with abnormal serum proteins.
@@ -24,5 +24,5 @@ def calcium_correction(total_calcium: float, albumin: float) -> float:
     if albumin < 0:
         raise ValueError("Albumin must be non-negative")
 
-    corrected_calcium = total_calcium + 0.8 * (normal_albumin - albumin)
+    corrected_calcium = total_calcium - albumin + normal_albumin
     return round(corrected_calcium, 2)

@@ -8,6 +8,11 @@ uses semantic versioning
 
 * Add growth_value_at_percentile, growth_curves (AgeUnit, presets CHART_FIRST_YEAR / CHART_0_18_YEARS)
 * Add ekfc: EKFC eGFR (Pottel 2021), optionally averaged with EKFC cystatin C (Pottel 2023)
+* calcium_correction: use Payne 1973 as published (Ca - albumin + 4.0), was 0.8 x (4.0 - albumin)
+* mdrd, ckd_epi, ekfc: reject Gender.DIVERSE instead of computing it as male
+* Framingham: HDL bands converted exactly from the published mg/dl values; cite CCS 2016 for risk levels
+* FraminghamRiskLevel values are lowercase identifiers; GCS and Child-Pugh INR cite their sources
+* cockcroft_gault: weight above 300 kg raises ValueError like bmi; dob2age uses the local date
 
 ## [0.1.0] - 2026-09-17
 

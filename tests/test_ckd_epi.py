@@ -129,3 +129,8 @@ def test_ckd_epi_elderly_patient():
     result = ckd_epi(creatinine=1.2, age=85, gender=Gender.FEMALE)
     expected = 44.3
     assert_in_range(result, expected)
+
+
+def test_ckd_epi_diverse_gender():
+    with pytest.raises(ValueError):
+        ckd_epi(creatinine=1.0, age=50, gender=Gender.DIVERSE)

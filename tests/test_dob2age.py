@@ -312,17 +312,17 @@ def test_dob2age_tuple_february_non_leap_year():
 
 
 def test_dob2age_tuple_uses_today_when_given_date_is_none():
-    """Test that dob2age_tuple uses datetime.now().date() when given_date parameter is None."""
+    """Test that dob2age_tuple uses the local date when given_date parameter is None."""
     from datetime import date
     from unittest.mock import patch
 
     from medimetry.converters import dob2age_tuple
 
-    # Mock datetime.now().date() to return a specific date
+    # Mock datetime.now().astimezone().date() to return a specific date
     mock_today = date(2023, 10, 15)
 
     with patch("medimetry.converters.datetime") as mock_datetime:
-        mock_datetime.now.return_value.date.return_value = mock_today
+        mock_datetime.now.return_value.astimezone.return_value.date.return_value = mock_today
 
         # Person born on March 15, 1990
         dob = date(1990, 3, 15)
@@ -334,9 +334,9 @@ def test_dob2age_tuple_uses_today_when_given_date_is_none():
         expected = (33, 7, 0)  # 33 years, 7 months, 0 days from 1990-03-15 to 2023-10-15
         assert result == expected
 
-        # Verify datetime.now().date() was called
+        # Verify the local date was requested
         mock_datetime.now.assert_called_once()
-        mock_datetime.now.return_value.date.assert_called_once()
+        mock_datetime.now.return_value.astimezone.return_value.date.assert_called_once()
 
 
 def test_dob2age_tuple_short_previous_month_never_yields_negative_days():

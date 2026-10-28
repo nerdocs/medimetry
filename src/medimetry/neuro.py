@@ -68,6 +68,11 @@ def glasgow_coma_scale(
         Teasdale G, et al. The Glasgow Coma Scale at 40 years: standing the test of time.
         Lancet Neurol. 2014;13(8):844-854. doi:10.1016/S1474-4422(14)70120-6
 
+        Severity category (not part of Teasdale 1974; conventional grouping, severe 3-8,
+        moderate 9-12, mild 13-15):
+        Rimel RW, et al. Moderate head injury: completing the clinical spectrum of brain trauma.
+        Neurosurgery. 1982;11(3):344-351. doi:10.1227/00006123-198209000-00002
+
     Args:
         eye_response (EyeResponse): Eye opening response (1-4)
         verbal_response (VerbalResponse): Verbal response (1-5)

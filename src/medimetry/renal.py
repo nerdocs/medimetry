@@ -62,11 +62,12 @@ def cockcroft_gault(
         float: Creatinine clearance in mL/min, rounded to 1 decimal place
     """
     assert weight > 0, "Weight must be positive"
-    assert weight < 400, "Weight must be less than 400 kg"
     assert age > 0, "Age must be positive"
     assert creatinine >= 0, "Creatinine must not be negative"
     assert gender in (Gender.MALE, Gender.FEMALE), "Gender must be Gender.MALE or Gender.FEMALE"
 
+    if weight > 300:
+        raise ValueError("Weight must be lower than 300 kilograms")
     if float(creatinine) == 0.0:
         raise ValueError("Creatinine must be non-zero")
     # Base calculation: ((140 - age) * weight) / (72 * creatinine)
@@ -110,6 +111,8 @@ def mdrd(creatinine: float, age: int, gender: Gender, race: EthnicalRace = Ethni
     assert age > 0, "Age must be positive"
     if not isinstance(gender, Gender):
         raise TypeError("Gender must be Gender.MALE or Gender.FEMALE")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
 
     # Base MDRD formula: 175 x (creatinine)^-1.154 x (age)^-0.203
     egfr = 175 * (creatinine**-1.154) * (age**-0.203)
@@ -153,6 +156,8 @@ def ckd_epi(creatinine: float, age: int, gender: Gender, cystatin_c: float | Non
     assert age > 0, "Age must be positive"
     if not isinstance(gender, Gender):
         raise TypeError("Gender must be of type 'Gender'")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
     if cystatin_c is not None:
         assert cystatin_c > 0, "Cystatin C must be positive, if given"
 
@@ -249,6 +254,8 @@ def ekfc(creatinine: float, age: float, gender: Gender, cystatin_c: float | None
     assert creatinine > 0, "Creatinine must be positive"
     if not isinstance(gender, Gender):
         raise TypeError("Gender must be of type 'Gender'")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
     if cystatin_c is not None:
         assert cystatin_c > 0, "Cystatin C must be positive, if given"
     if age < 2:

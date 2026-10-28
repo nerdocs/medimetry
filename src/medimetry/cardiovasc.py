@@ -4,11 +4,11 @@ from medimetry import Gender
 
 
 class FraminghamRiskLevel(Enum):
-    """Framingham risk level categories."""
+    """Framingham risk level categories (CCS 2016: < 10 %, 10-19.9 %, >= 20 %)."""
 
-    LOW = "Low"
-    INTERMEDIATE = "Intermediate"
-    HIGH = "High"
+    LOW = "low"
+    INTERMEDIATE = "intermediate"
+    HIGH = "high"
 
 
 def mean_arterial_pressure(systolic: int, diastolic: int) -> float:
@@ -124,6 +124,11 @@ def framingham_risk_score(
         the Framingham Heart Study. Circulation. 2008;117(6):743-753.
         doi:10.1161/CIRCULATIONAHA.107.699579
 
+        Risk level (not part of D'Agostino 2008; guideline convention):
+        Anderson TJ, et al. 2016 Canadian Cardiovascular Society Guidelines for the Management
+        of Dyslipidemia for the Prevention of Cardiovascular Disease in the Adult.
+        Can J Cardiol. 2016;32(11):1263-1282. doi:10.1016/j.cjca.2016.07.510
+
     Args:
         age (int): Age in years (30-79)
         gender (Gender): Gender (Gender.MALE or Gender.FEMALE)
@@ -215,16 +220,17 @@ def framingham_risk_score(
     else:  # chol > 7.2 mmol/l
         points += 4 if gender == Gender.MALE else 5
 
-    # HDL cholesterol points (same for both sexes)
-    if hdl_cholesterol > 1.6:
+    # HDL cholesterol points (same for both sexes), bands as published in mg/dl
+    hdl_mg_dl = hdl_cholesterol * 38.67
+    if hdl_mg_dl >= 60:
         points -= 2
-    elif 1.3 <= hdl_cholesterol <= 1.6:
+    elif hdl_mg_dl >= 50:
         points -= 1
-    elif 1.2 <= hdl_cholesterol < 1.3:
+    elif hdl_mg_dl >= 45:
         points += 0
-    elif 0.9 <= hdl_cholesterol < 1.2:
+    elif hdl_mg_dl >= 35:
         points += 1
-    else:  # < 0.9
+    else:
         points += 2
 
     # Blood pressure points

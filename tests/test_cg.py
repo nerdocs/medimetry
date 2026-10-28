@@ -63,8 +63,8 @@ def test_cockcroft_gault_negative_weight():
 
 def test_cockcroft_gault_excessive_weight():
     """Test Cockcroft-Gault formula with excessive weight."""
-    with pytest.raises(AssertionError, match="Weight must be less than 400 kg"):
-        cockcroft_gault(age=50, weight=450, creatinine=1.0, gender=Gender.MALE)
+    with pytest.raises(ValueError, match="Weight must be lower than 300 kilograms"):
+        cockcroft_gault(age=50, weight=350, creatinine=1.0, gender=Gender.MALE)
 
 
 def test_cockcroft_gault_zero_age():

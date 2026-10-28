@@ -39,6 +39,11 @@ def child_pugh_score(
         Pugh RN, et al. Transection of the oesophagus for bleeding oesophageal varices.
         Br J Surg. 1973;60(8):646-649. doi:10.1002/bjs.1800600817
 
+        Pugh 1973 grades the prothrombin time prolongation in seconds; the INR bands
+        (< 1.7, 1.7-2.3, > 2.3) are the modification in use since:
+        Durand F, Valla D. Assessment of the prognosis of cirrhosis: Child-Pugh versus MELD.
+        J Hepatol. 2005;42 Suppl(1):S100-S107. doi:10.1016/j.jhep.2004.11.015
+
     Args:
         bilirubin (float): Total bilirubin in mg/dl
         albumin (float): Serum albumin in g/dl

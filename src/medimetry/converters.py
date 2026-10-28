@@ -1,5 +1,4 @@
 from calendar import monthrange
-from datetime import UTC
 from datetime import date
 from datetime import datetime
 
@@ -15,7 +14,7 @@ def dob2age(dob: date, given_date: date | None = None) -> int:
     Returns:
         int: Age in years
     """
-    today: date = given_date or datetime.now(UTC).date()
+    today: date = given_date or datetime.now().astimezone().date()
     age_years = today.year - dob.year
     if today.month < dob.month or (today.month == dob.month and today.day < dob.day):
         age_years -= 1
@@ -37,7 +36,7 @@ def dob2age_tuple(dob: date, given_date: date | None = None) -> tuple[int, int, 
     >>> dob2age_tuple(date(2025, 1, 31), date(2025, 3, 1))
     (0, 1, 1)
     """
-    today: date = given_date or datetime.now(UTC).date()
+    today: date = given_date or datetime.now().astimezone().date()
 
     # Number of whole months between dob and today
     total_months = (today.year - dob.year) * 12 + today.month - dob.month

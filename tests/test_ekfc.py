@@ -73,3 +73,8 @@ def test_ekfc_zero_cystatin_c():
 def test_ekfc_invalid_gender():
     with pytest.raises(TypeError):
         ekfc(creatinine=1.0, age=50, gender="invalid")
+
+
+def test_ekfc_diverse_gender():
+    with pytest.raises(ValueError):
+        ekfc(creatinine=1.0, age=50, gender=Gender.DIVERSE)

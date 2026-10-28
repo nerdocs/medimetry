@@ -184,14 +184,14 @@ def test_framingham_risk_score_middle_aged_female_moderate_risk():
 @pytest.mark.parametrize(
     ("hdl", "expected_points"),
     [
-        (1.7, -2),  # > 1.6
-        (1.6, -1),  # 1.3-1.6
+        (1.6, -2),  # >= 60 mg/dl (1.55 mmol/l)
+        (1.55, -1),  # 50-59 mg/dl
         (1.3, -1),
-        (1.25, 0),  # 1.2-1.29
-        (1.2, 0),
-        (1.19, 1),  # 0.9-1.19
-        (0.9, 1),
-        (0.89, 2),  # < 0.9
+        (1.25, 0),  # 45-49 mg/dl
+        (1.17, 0),
+        (1.16, 1),  # 35-44 mg/dl
+        (0.91, 1),
+        (0.9, 2),  # < 35 mg/dl (0.905 mmol/l)
     ],
 )
 def test_framingham_hdl_bands(hdl, expected_points):
