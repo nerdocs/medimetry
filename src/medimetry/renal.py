@@ -42,11 +42,8 @@ def cockcroft_gault(
     """
     Calculate creatinine clearance using Cockcroft-Gault formula.
 
-    Note: This formula has been superseded by the CKD-EPI equation for accuracy.
-    It is still occasionally used, but it is no longer recommended in the
-    literature. Its disadvantages include the fact that it was derived from an
-    evaluation of only 249 participants, requires laboratories to know the patient's
-    body weight, and does not normalize the result to body surface area.
+    The equation was derived from 249 participants. It requires body weight and
+    returns creatinine clearance in ml/min, not normalized to body surface area.
 
     References:
         Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine.
@@ -84,8 +81,6 @@ def mdrd(creatinine: float, age: int, gender: Gender, race: EthnicalRace = Ethni
     """
     Calculate eGFR using MDRD (Modification of Diet in Renal Disease) formula.
 
-    Note: This formula has been superseded by the CKD-EPI equation for accuracy.
-
     eGFR=175 x (creatinine)^-1.154 x (age)^-0.203 x (0.742 if female) x (1.212 if Black)
 
     References:
@@ -93,10 +88,7 @@ def mdrd(creatinine: float, age: int, gender: Gender, race: EthnicalRace = Ethni
         diet in renal disease study equation for estimating glomerular filtration rate.
         Ann Intern Med. 2006;145(4):247-254. doi:10.7326/0003-4819-145-4-200608150-00004
 
-    It is only recommended for adults >18 years. If the result exceeds 60
-    ml/min/1.73m², the actual value is of little significance. Thus, it would be
-    sufficient to use ">60 ml/min/1.73m²" as the result. The MDRD formula offers the
-    highest accuracy in the range of 15-55 ml/min/1.73m².
+    The equation was derived in adults (> 18 years) with chronic kidney disease.
 
     Args:
         creatinine (float): Serum creatinine in mg/dl

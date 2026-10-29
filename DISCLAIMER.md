@@ -10,8 +10,13 @@ legislation. It has no medical intended purpose. It is not intended to be used, 
 diagnosis, prevention, monitoring, prediction, prognosis, treatment or alleviation of disease, injury or
 disability, nor for providing information used to take decisions with diagnostic or therapeutic purposes.
 
-The library returns numeric results and the categories defined by the cited publications. It does not interpret
-results, does not issue recommendations and does not replace clinical judgement.
+The library returns numeric results and the categories defined by the cited publications. Where a category does
+not come from the publication of the formula itself (e.g. guideline risk bands or a conventional severity grouping),
+its source is cited separately and marked as such in the docstring. It does not interpret results, does not issue
+recommendations and does not replace clinical judgement.
+
+Translatable titles (the `*_titles` dictionaries) reproduce the terms of the cited publications. They are labels for
+displaying a category, not an interpretation of it.
 
 ## Responsibility of integrators
 

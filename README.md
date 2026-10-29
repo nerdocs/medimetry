@@ -6,8 +6,9 @@ developers and researchers.
 ## Intended use
 
 medimetry reproduces formulas and scoring systems exactly as published in the cited literature (every function
-lists its primary source). It returns the raw numeric result or the category defined by that publication and
-nothing else: no interpretation, no recommendation, no clinical guidance.
+lists its primary source). It returns the raw numeric result or a category defined by that publication and
+nothing else: no interpretation, no recommendation, no clinical guidance. Where a category comes from a different
+publication than the formula (e.g. a guideline's risk bands), that publication is cited separately and marked as such.
 
 **medimetry is not a medical device.** It is not intended for diagnosis, prevention, monitoring, prediction,
 prognosis, treatment or alleviation of disease, and it must not be used as a basis for clinical decisions.
@@ -55,55 +56,55 @@ See [Contributing](CONTRIBUTING.md).
 
 ## Medical Tests Reference Table
 
-| Domain / System                                     |   | Test / Score / Calculator                     | Purpose / Use Case                             |
-|-----------------------------------------------------|---|-----------------------------------------------|------------------------------------------------|
-| Renal Function (**renal**)                          | ✅ | Creatinine Clearance (Cockcroft-Gault)        | Estimate renal function (CrCl)                 |
-|                                                     | ✅ | CKD-EPI GFR Equations                         | Estimate GFR in CKD patients                   |
-|                                                     | ✅ | EKFC GFR Equation                             | Estimate GFR across the full age spectrum      |
-|                                                     | ✅ | MDRD GFR Equation                             | Estimate GFR in CKD patients                   |
-|                                                     | ✅ | CKD Staging                                   | KDIGO GFR/albuminuria/risk categories          |
-|                                                     |   | Fractional Excretion of Sodium (FENa)         | Differentiate renal failure type               |
-| Electrolytes (**lytes**)                            |   | Sodium Correction for Hyperglycemia           | Correct Na in hyperglycemia                    |
-|                                                     |   | Serum Osmolality/Osmolarity                   | Detect unmeasured serum compounds              |
-|                                                     | ✅ | Calcium Correction for Hypo-/Hyperalbuminemia | Correct serum calcium                          |
-|                                                     |   | Free Water Deficit in Hypernatremia           | Guide rehydration therapy                      |
-| Cardiovascular Risk / Hemodynamics (**cardiovasc**) | ✅ | Mean Arterial Pressure (MAP)                  | Assess perfusion pressure                      |
-|                                                     | ✅ | CHA₂DS₂-VASc Score                            | Stroke risk in atrial fibrillation             |
-|                                                     |   | ASCVD 2013 Risk Calculator                    | 10-year risk of hard ASCVD                     |
-|                                                     |   | ASCVD Risk Algorithm with Known ASCVD         | 10-year risk & statin guidance                 |
-|                                                     | ✅ | Framingham General CVD Risk Score (2008)      | 10-year risk of cardiovascular disease         |
-|                                                     |   | HEART Score                                   | 6-week risk of major cardiac events            |
-|                                                     |   | GRACE ACS Risk and Mortality Calculator       | Mortality risk in ACS                          |
-|                                                     |   | Revised Cardiac Risk Index (Pre-op)           | Cardiac risk after noncardiac surgery          |
-|                                                     |   | ARISCAT Score                                 | Post-op pulmonary complications risk           |
-|                                                     |   | Gupta MICA Score                              | Post-op MI/cardiac arrest risk                 |
-| Liver / GI / Metabolic                              |   | Fibrosis-4 (FIB-4) Index                      | Noninvasive liver fibrosis assessment          |
-|                                                     | ✅ | Child-Pugh Score                              | Cirrhosis severity & mortality                 |
-|                                                     |   | MELD Na                                       | End-stage liver disease & transplant planning  |
-|                                                     |   | HOMA-IR                                       | Insulin resistance estimate                    |
-|                                                     |   | Serum Anion Gap                               | Metabolic acidosis evaluation                  |
-| Pulmonary / Sleep                                   |   | Wells’ Criteria for PE                        | PE risk stratification                         |
-|                                                     | ✅ | Revised / Simplified Geneva Score             | Clinical probability of PE                     |
-|                                                     | ✅ | PERC Rule                                     | PE rule-out criteria count                     |
-|                                                     |   | Wells’ Criteria for DVT                       | DVT risk assessment                            |
-|                                                     |   | STOP-BANG Score                               | Obstructive sleep apnea screening              |
-| Neurological / Stroke / Consciousness (**neuro**)   |   | NIH Stroke Scale (NIHSS)                      | Stroke severity & monitoring                   |
-|                                                     | ✅ | Glasgow Coma Scale (GCS)                      | Coma severity assessment                       |
-|                                                     |   | PECARN Pediatric Head Injury                  | Brain imaging need after pediatric head injury |
-|                                                     |   | CURB-65 Score                                 | Pneumonia severity & mortality                 |
-| Body Metrics                                        | ✅ | BMI and BSA                                   | Body mass and surface area                     |
-|                                                     | ✅ | Growth charts (CDC 2000 / WHO 2006+2007)      | Pediatric z-scores and percentiles (LMS)       |
-|                                                     |   | Ideal & Adjusted Body Weight                  | Weight assessment for dosing/therapy           |
-|                                                     |   | Maintenance Fluids Calculations               | Calculate fluid needs                          |
-| Cardiac / ECG  (**cardiac**)                        | ✅ | Corrected QT Interval (QTc)                   | Correct QT for heart rate extremes             |
-| Psychiatric / Neuropsychiatric                      |   | PHQ-9                                         | Depression severity                            |
-|                                                     |   | GAD-7                                         | Anxiety severity                               |
-|                                                     |   | CIWA-Ar                                       | Alcohol withdrawal severity                    |
-| Medication / Pharmacology                           |   | Steroid Conversion Calculator                 | Steroid dose equivalence                       |
-|                                                     |   | Morphine Milligram Equivalents (MME)          | Opioid dose conversion                         |
-| Risk Prediction / Surgery / ICU                     |   | SIRS, Sepsis, Septic Shock Criteria           | Sepsis severity assessment                     |
-|                                                     |   | Sequential Organ Failure Assessment (SOFA)    | ICU mortality prediction                       |
-|                                                     |   | Padua Prediction Score                        | VTE risk & anticoagulation need                |
-|                                                     |   | ARISCAT Score                                 | Post-op pulmonary complications risk           |
-| Infectious / Inflammatory                           |   | Centor Score (Strep Pharyngitis)              | Streptococcal pharyngitis probability          |
-|                                                     |   | PSI/PORT Score (Pneumonia)                    | Pneumonia mortality risk                       |
+| Domain / System                                     |   | Test / Score / Calculator                     |
+|-----------------------------------------------------|---|-----------------------------------------------|
+| Renal Function (**renal**)                          | ✅ | Creatinine Clearance (Cockcroft-Gault)        |
+|                                                     | ✅ | CKD-EPI GFR Equations                         |
+|                                                     | ✅ | EKFC GFR Equation                             |
+|                                                     | ✅ | MDRD GFR Equation                             |
+|                                                     | ✅ | CKD Staging                                   |
+|                                                     |   | Fractional Excretion of Sodium (FENa)         |
+| Electrolytes (**lytes**)                            |   | Sodium Correction for Hyperglycemia           |
+|                                                     |   | Serum Osmolality/Osmolarity                   |
+|                                                     | ✅ | Calcium Correction for Hypo-/Hyperalbuminemia |
+|                                                     |   | Free Water Deficit in Hypernatremia           |
+| Cardiovascular Risk / Hemodynamics (**cardiovasc**) | ✅ | Mean Arterial Pressure (MAP)                  |
+|                                                     | ✅ | CHA₂DS₂-VASc Score                            |
+|                                                     |   | ASCVD 2013 Risk Calculator                    |
+|                                                     |   | ASCVD Risk Algorithm with Known ASCVD         |
+|                                                     | ✅ | Framingham General CVD Risk Score (2008)      |
+|                                                     |   | HEART Score                                   |
+|                                                     |   | GRACE ACS Risk and Mortality Calculator       |
+|                                                     |   | Revised Cardiac Risk Index (Pre-op)           |
+|                                                     |   | ARISCAT Score                                 |
+|                                                     |   | Gupta MICA Score                              |
+| Liver / GI / Metabolic                              |   | Fibrosis-4 (FIB-4) Index                      |
+|                                                     | ✅ | Child-Pugh Score                              |
+|                                                     |   | MELD Na                                       |
+|                                                     |   | HOMA-IR                                       |
+|                                                     |   | Serum Anion Gap                               |
+| Pulmonary / Sleep                                   |   | Wells’ Criteria for PE                        |
+|                                                     | ✅ | Revised / Simplified Geneva Score             |
+|                                                     | ✅ | PERC Rule                                     |
+|                                                     |   | Wells’ Criteria for DVT                       |
+|                                                     |   | STOP-BANG Score                               |
+| Neurological / Stroke / Consciousness (**neuro**)   |   | NIH Stroke Scale (NIHSS)                      |
+|                                                     | ✅ | Glasgow Coma Scale (GCS)                      |
+|                                                     |   | PECARN Pediatric Head Injury                  |
+|                                                     |   | CURB-65 Score                                 |
+| Body Metrics                                        | ✅ | BMI and BSA                                   |
+|                                                     | ✅ | Growth charts (CDC 2000 / WHO 2006+2007)      |
+|                                                     |   | Ideal & Adjusted Body Weight                  |
+|                                                     |   | Maintenance Fluids Calculations               |
+| Cardiac / ECG  (**cardiac**)                        | ✅ | Corrected QT Interval (QTc)                   |
+| Psychiatric / Neuropsychiatric                      |   | PHQ-9                                         |
+|                                                     |   | GAD-7                                         |
+|                                                     |   | CIWA-Ar                                       |
+| Medication / Pharmacology                           |   | Steroid Conversion Calculator                 |
+|                                                     |   | Morphine Milligram Equivalents (MME)          |
+| Risk Prediction / Surgery / ICU                     |   | SIRS, Sepsis, Septic Shock Criteria           |
+|                                                     |   | Sequential Organ Failure Assessment (SOFA)    |
+|                                                     |   | Padua Prediction Score                        |
+|                                                     |   | ARISCAT Score                                 |
+| Infectious / Inflammatory                           |   | Centor Score (Strep Pharyngitis)              |
+|                                                     |   | PSI/PORT Score (Pneumonia)                    |

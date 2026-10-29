@@ -33,7 +33,7 @@ def child_pugh_score(
     encephalopathy: EncephalopathyGrade,
 ) -> tuple[int, ChildPughGrade]:
     """
-    Calculate Child-Pugh score for liver disease severity assessment.
+    Calculate the Child-Pugh score as published by Pugh et al. (1973).
 
     References:
         Pugh RN, et al. Transection of the oesophagus for bleeding oesophageal varices.

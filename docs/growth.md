@@ -80,8 +80,8 @@ curves.age_unit      # AgeUnit.MONTHS (None for weight-for-length / -height, whe
 
 ### Chart presets and percentile sets
 
-Printed chart sheets follow a few conventions (WHO 2006/2007 sheets, CDC 2000 clinical charts, Kromeyer-Hauschild
-sheets used in the German U-Heft; Austria uses the WHO curves below 5 years):
+Published chart sheets follow a few conventions (WHO 2006/2007 sheets, CDC 2000 clinical charts, Kromeyer-Hauschild
+sheets):
 
 | Convention               | Sheets                           | Lines (P50 bold except CDC) | Constant                 |
 |--------------------------|----------------------------------|-----------------------------|--------------------------|

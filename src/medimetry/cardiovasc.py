@@ -47,7 +47,7 @@ def chads_vasc_score(
     vascular_disease: bool = False,
 ) -> int:
     """
-    Calculate CHA2DS2-VASc score for stroke risk assessment in atrial fibrillation.
+    Calculate the CHA2DS2-VASc score as published by Lip et al. (2010).
 
     References:
         Lip GY, et al. Refining clinical risk stratification for predicting stroke and

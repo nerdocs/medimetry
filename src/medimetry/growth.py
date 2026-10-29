@@ -88,10 +88,10 @@ DEFAULT_PERCENTILES = (3.0, 10.0, 25.0, 50.0, 75.0, 90.0, 97.0)  # CDC 2-20 y, K
 PERCENTILES_WHO = (3.0, 15.0, 50.0, 85.0, 97.0)  # WHO chart sheets 0-19 y
 PERCENTILES_CDC_INFANT = (5.0, 10.0, 25.0, 50.0, 75.0, 90.0, 95.0)  # CDC birth-36 months sheets
 
-# Sampling presets for the two chart layouts commonly used in practice; unpack into growth_curves(**preset).
+# Sampling presets for two published chart sheet layouts; unpack into growth_curves(**preset).
 # First year of life, weekly resolution (WHO infant sheets use a week axis).
 CHART_FIRST_YEAR = {"age_unit": AgeUnit.WEEKS, "start": 0, "end": 52, "step": 1}
-# Childhood and adolescence on one sheet, monthly resolution (DACH convention: one 0-18 y sheet).
+# Childhood and adolescence on one sheet, monthly resolution (Kromeyer-Hauschild: one 0-18 y sheet).
 CHART_0_18_YEARS = {"age_unit": AgeUnit.YEARS, "start": 0, "end": 18, "step": 1 / 12}
 
 
