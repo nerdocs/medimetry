@@ -46,7 +46,7 @@ class GCSCategory(Enum):
 gcs_category_titles = {
     GCSCategory.SEVERE: _("Severe"),
     GCSCategory.MODERATE: _("Moderate"),
-    GCSCategory.MILD: _("Mild"),
+    GCSCategory.MILD: _("Minor"),
 }
 
 

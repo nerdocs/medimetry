@@ -63,8 +63,16 @@ Verification levels:
 - Category: Rimel RW, et al. Neurosurgery. 1982;11(3):344-351. doi:10.1227/00006123-198209000-00002 (**primary**,
   abstract). Not part of Teasdale 1974: "severe, 3-8; moderate, 9-12; and minor, 13-15".
 
+## Anthropometric (`anthropometric.py`)
+
+### `bmi_category`
+
+- WHO. Obesity: preventing and managing the global epidemic. WHO Technical Report Series 894. Geneva: WHO; 2000
+  (**primary**, Table 2.1). Titles follow the table: "Normal range", "Preobese" (25.00–29.99, the code's
+  `OVERWEIGHT`), "Obese class I–III".
+
 ## Other modules
 
-The remaining formulas (Cockcroft-Gault, MDRD, CKD-EPI 2021, KDIGO staging, ACR, MAP, CHA₂DS₂-VASc, BMI and WHO
-classes, BSA formulas, QTc, Simplified and Revised Geneva, PERC, LMS growth math) were checked against secondary
-sources in an audit in October 2026 without findings. They have not been re-checked against the primary papers yet.
+The remaining formulas (Cockcroft-Gault, MDRD, CKD-EPI 2021, KDIGO staging, ACR, MAP, CHA₂DS₂-VASc, BSA formulas,
+QTc, Simplified and Revised Geneva, PERC, LMS growth math) were checked against secondary sources in an audit in
+October 2026 without findings. They have not been re-checked against the primary papers yet.

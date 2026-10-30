@@ -16,11 +16,11 @@ class BMICategory(Enum):
 
 bmi_category_titles = {
     BMICategory.UNDERWEIGHT: _("Underweight"),
-    BMICategory.NORMAL: _("Normal weight"),
-    BMICategory.OVERWEIGHT: _("Overweight"),
-    BMICategory.OBESE_CLASS_I: _("Obese Class I"),
-    BMICategory.OBESE_CLASS_II: _("Obese Class II"),
-    BMICategory.OBESE_CLASS_III: _("Obese Class III"),
+    BMICategory.NORMAL: _("Normal range"),
+    BMICategory.OVERWEIGHT: _("Preobese"),
+    BMICategory.OBESE_CLASS_I: _("Obese class I"),
+    BMICategory.OBESE_CLASS_II: _("Obese class II"),
+    BMICategory.OBESE_CLASS_III: _("Obese class III"),
 }
 
 

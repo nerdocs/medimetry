@@ -14,6 +14,7 @@ uses semantic versioning
 * FraminghamRiskLevel values are lowercase identifiers; GCS cites Rimel 1982, Child-Pugh INR marked unverified
 * Add docs/references.md: verification status of the cited sources
 * MDR wording: drop purpose column from README, neutral docstrings, disclaimer covers category sources and titles
+* BMI and GCS titles use the wording of WHO TRS 894 ("Normal range", "Preobese") and Rimel 1982 ("Minor")
 * cockcroft_gault: weight above 300 kg raises ValueError like bmi; dob2age uses the local date
 
 ## [0.1.0] - 2026-09-17
