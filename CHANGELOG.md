@@ -4,6 +4,10 @@
 uses semantic versioning
 
 
+## [0.2.1] - 2026-10-30
+
+* Fix CI check job: exclude CLAUDE.md and uv.lock from sdist, taplo-lint without schema catalog
+
 ## [0.2.0] - 2026-10-30
 
 * Add growth_value_at_percentile, growth_curves (AgeUnit, presets CHART_FIRST_YEAR / CHART_0_18_YEARS)
