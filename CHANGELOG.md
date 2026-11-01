@@ -4,7 +4,7 @@
 uses semantic versioning
 
 
-## [Unreleased]
+## [0.2.2] - 2026-11-01
 
 * CI publishes tagged releases to PyPI via trusted publishing
 
