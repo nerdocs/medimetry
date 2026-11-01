@@ -4,6 +4,10 @@
 uses semantic versioning
 
 
+## [Unreleased]
+
+* CI publishes tagged releases to PyPI via trusted publishing
+
 ## [0.2.1] - 2026-10-30
 
 * Fix CI check job: exclude CLAUDE.md and uv.lock from sdist, taplo-lint without schema catalog

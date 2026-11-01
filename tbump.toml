@@ -18,6 +18,10 @@ search = '__version__ = "{current_version}"'
 name = "check changelog"
 cmd = "grep -q {new_version} CHANGELOG.md"
 
+[[before_commit]]
+name = "update uv.lock"
+cmd = "uv lock"
+
 # Or run some commands after the git tag and the branch
 # have been pushed:
 #  [[after_push]]

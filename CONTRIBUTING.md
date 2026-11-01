@@ -89,3 +89,12 @@ To run all the test environments in *parallel*:
 ```bash
 tox -p auto
 ```
+
+## Releasing
+
+1. Move the `[Unreleased]` entries in `CHANGELOG.md` under the new version heading.
+2. Bump the version with `tbump X.Y.Z` (updates `pyproject.toml` and `src/medimetry/__init__.py`, commits, tags
+   `vX.Y.Z` and pushes).
+3. The `build` workflow runs the test matrix on the tag. If all jobs pass, the `publish` job checks that the tag
+   matches the package version, builds the package and uploads it to PyPI via trusted publishing (GitHub environment
+   `pypi`). No API token is involved.
