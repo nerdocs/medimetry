@@ -59,7 +59,7 @@ See [Contributing](CONTRIBUTING.md).
 | Domain / System                                     |   | Test / Score / Calculator                     |
 |-----------------------------------------------------|---|-----------------------------------------------|
 | Renal Function (**renal**)                          | ✅ | Creatinine Clearance (Cockcroft-Gault)        |
-|                                                     | ✅ | CKD-EPI GFR Equations                         |
+|                                                     | ✅ | CKD-EPI GFR Equations (2009, 2021)            |
 |                                                     | ✅ | EKFC GFR Equation                             |
 |                                                     | ✅ | MDRD GFR Equation                             |
 |                                                     | ✅ | CKD Staging                                   |

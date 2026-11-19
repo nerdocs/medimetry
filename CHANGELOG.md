@@ -4,6 +4,10 @@
 uses semantic versioning
 
 
+## [0.3.0] - 2026-11-19
+
+* Add ckd_epi_2009: CKD-EPI 2009 creatinine equation (Levey 2009); ckd_epi stays the 2021 equation
+
 ## [0.2.2] - 2026-11-01
 
 * CI publishes tagged releases to PyPI via trusted publishing

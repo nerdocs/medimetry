@@ -125,6 +125,8 @@ def ckd_epi(creatinine: float, age: int, gender: Gender, cystatin_c: float | Non
     Calculate eGFR using 2021 CKD-EPI equation (Chronic Kidney Disease Epidemiology Collaboration)
     formula, which does not use a "race" as parameter.
 
+    This is the 2021 equation; the 2009 creatinine equation is ``ckd_epi_2009``.
+
     References:
         Inker LA, et al. New Creatinine- and Cystatin C-Based Equations to Estimate GFR without Race.
         N Engl J Med. 2021;385(19):1737-1749. doi:10.1056/NEJMoa2102953
@@ -194,6 +196,56 @@ def ckd_epi(creatinine: float, age: int, gender: Gender, cystatin_c: float | Non
             * (0.9961**age)
             * gender_factor
         )
+
+
+def ckd_epi_2009(creatinine: float, age: int, gender: Gender, race: EthnicalRace = EthnicalRace.OTHER) -> float:
+    """
+    Calculate eGFR using the 2009 CKD-EPI creatinine equation.
+
+    eGFR = 141 x min(Scr/k, 1)^a x max(Scr/k, 1)^-1.209 x 0.993^age x (1.018 if female) x (1.159 if Black)
+
+    with k = 0.7 (female) / 0.9 (male) and a = -0.329 (female) / -0.411 (male). Superseded by the 2021
+    equation (``ckd_epi``), which drops the race coefficient; still reported by laboratories.
+
+    References:
+        Levey AS, et al. A New Equation to Estimate Glomerular Filtration Rate.
+        Ann Intern Med. 2009;150(9):604-612. doi:10.7326/0003-4819-150-9-200905050-00006
+
+    Args:
+        creatinine (float): Serum creatinine in mg/dl
+        age (int): Age in years
+        gender (Gender): Gender.MALE or Gender.FEMALE
+        race (EthnicalRace): EthnicalRace.AFRICAN_AMERICAN applies the 1.159 factor, any other value does not
+
+    Returns:
+        float: Estimated GFR in mL/min/1.73m²
+
+    >>> round(ckd_epi_2009(creatinine=1.5, age=70, gender=Gender.MALE), 1)
+    46.5
+    """
+    assert creatinine > 0, "Creatinine must be positive"
+    assert age > 0, "Age must be positive"
+    if not isinstance(gender, Gender):
+        raise TypeError("Gender must be Gender.MALE or Gender.FEMALE")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+
+    if gender == Gender.FEMALE:
+        kappa = 0.7
+        alpha = -0.329
+        gender_factor = 1.018
+    else:
+        kappa = 0.9
+        alpha = -0.411
+        gender_factor = 1.0
+
+    cr_kappa_ratio = creatinine / kappa
+    egfr = 141 * min(cr_kappa_ratio, 1.0) ** alpha * max(cr_kappa_ratio, 1.0) ** -1.209 * (0.993**age) * gender_factor
+
+    if race == EthnicalRace.AFRICAN_AMERICAN:
+        egfr *= 1.159
+
+    return egfr
 
 
 def _ekfc(ratio: float, age: float) -> float:

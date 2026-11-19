@@ -10,4 +10,4 @@ from medimetry.constants import Gender
 from medimetry.constants import QtcCorrectionType
 
 __all__ = ["EthnicalRace", "Gender", "QtcCorrectionType"]
-__version__ = "0.2.2"
+__version__ = "0.3.0"
