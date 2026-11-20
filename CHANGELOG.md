@@ -6,6 +6,8 @@ uses semantic versioning
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-20
+
 * Add laboratory.zlog: zlog value of a result against a two-sided reference interval (Hoffmann 2017)
 * Input checks raise ValueError/TypeError instead of assert (asserts vanished under python -O)
 * Drop the unused labunits dependency; ship py.typed; run the docstring doctests in the test suite
@@ -21,10 +23,7 @@ uses semantic versioning
 * Geneva: score functions return int; new `geneva_simplified_category` / `geneva_revised_category`; `GenevaScore` gone
 * Framingham: `framingham_risk_score` -> `framingham_score`, `framingham_risk(points, gender)`, `framingham_category`
 * Tests: Framingham age/treated-SBP bands and risk tables, WHO download path, `_lms_rows`; CKD-EPI values documented
-
-## [0.3.0] - 2026-11-19
-
-* Add ckd_epi_2009: CKD-EPI 2009 creatinine equation (Levey 2009); ckd_epi stays the 2021 equation
+* Add ckd_epi_2009: CKD-EPI 2009 creatinine equation (Levey 2009)
 
 ## [0.2.2] - 2026-11-01
 
