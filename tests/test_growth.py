@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from medimetry import Gender
+from medimetry.growth import _WHO_SOURCES
 from medimetry.growth import CHART_0_18_YEARS
 from medimetry.growth import CHART_FIRST_YEAR
 from medimetry.growth import DAYS_PER_MONTH
@@ -16,6 +17,7 @@ from medimetry.growth import AgeUnit
 from medimetry.growth import GrowthIndicator
 from medimetry.growth import GrowthReference
 from medimetry.growth import WhoDownloadError
+from medimetry.growth import _lms_rows
 from medimetry.growth import _read_xlsx
 from medimetry.growth import download_who_tables
 from medimetry.growth import growth_curves
@@ -192,7 +194,7 @@ def test_value_at_percentile_matches_published_columns(indicator, gender, raw_ke
 def test_value_at_percentile_roundtrip_with_zscore():
     kwargs = {"age_days": 10 * 365.25}
     value = growth_value_at_percentile(GrowthIndicator.BMI_FOR_AGE, Gender.FEMALE, percentile=85, **kwargs)
-    assert growth_percentile(GrowthIndicator.BMI_FOR_AGE, Gender.FEMALE, value=value, **kwargs) == 85.0
+    assert growth_percentile(GrowthIndicator.BMI_FOR_AGE, Gender.FEMALE, value=value, rounded=True, **kwargs) == 85.0
 
 
 def test_value_at_percentile_validation():
@@ -271,3 +273,53 @@ def test_chart_presets():
     assert len(childhood.keys) == 18 * 12 + 1
     assert childhood.keys[-1] == pytest.approx(18.0)
     assert set(childhood.curves) == {3.0, 15.0, 50.0, 85.0, 97.0}
+
+
+def test_lms_rows_selects_columns_and_skips_incomplete_rows():
+    """Header names are stripped, extra columns ignored, rows with an empty L/M/S/key cell skipped, the key scaled."""
+    matrix = [
+        ["Month ", "L", "M", "S", "SD0"],
+        ["61", "-0.7", "15.3", "0.08", "15.3"],
+        ["62", "", "15.3", "0.08"],  # incomplete: skipped
+        ["63", "-0.7", "15.4"],  # short row (S missing): skipped
+        ["64", "-0.6", "15.5", "0.09"],
+    ]
+    assert _lms_rows(matrix, "Month", 2.0) == [(122.0, -0.7, 15.3, 0.08), (128.0, -0.6, 15.5, 0.09)]
+
+
+def test_download_who_tables_success(tmp_path, monkeypatch):
+    """Offline: every WHO URL answers a tiny synthetic workbook (not WHO data); 0-5 y and 5-19 y tables are merged."""
+    key_columns = {url: key_column for _, _, url, key_column, _ in _WHO_SOURCES}
+
+    class FakeResponse:
+        def __init__(self, data):
+            self._data = data
+
+        def read(self):
+            return self._data
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    def fake_urlopen(request, timeout):
+        key_column = key_columns[request.full_url]
+        first = 61 if key_column == "Month" else 0  # 5-19 y tables start at 61 months, distinct from the 0-5 y keys
+        header = [("s", 0), ("s", 1), ("s", 2), ("s", 3)]
+        rows = [[("n", first + i), ("n", 0), ("n", 10 + i), ("n", 0.1)] for i in range(2)]
+        return FakeResponse(_xlsx([key_column, "L", "M", "S"], [header, *rows]))
+
+    monkeypatch.setattr("medimetry.growth.urlopen", fake_urlopen)
+    written = download_who_tables(tmp_path / "who")
+
+    assert len(written) == 12
+    assert sorted(p.name for p in written) == sorted(p.name for p in (tmp_path / "who").iterdir())
+    wfa_m = (tmp_path / "who" / "wfa_m.csv").read_text().splitlines()
+    assert wfa_m == ["key;L;M;S", "0.0;0.0;10.0;0.1", "1.0;0.0;11.0;0.1", f"{61 * 30.4375};0.0;10.0;0.1", f"{62 * 30.4375};0.0;11.0;0.1"]
+    # the freshly written tables are read (L = 0 branch: z = ln(value / M) / S)
+    z = growth_zscore(
+        GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, value=10.0, age_days=0, reference=GrowthReference.WHO, data_dir=tmp_path / "who"
+    )
+    assert z == pytest.approx(0.0)

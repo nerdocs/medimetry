@@ -4,20 +4,31 @@ from medimetry.neuro import EyeResponse
 from medimetry.neuro import GCSCategory
 from medimetry.neuro import MotorResponse
 from medimetry.neuro import VerbalResponse
+from medimetry.neuro import gcs_category
 from medimetry.neuro import gcs_from_scores
-from medimetry.neuro import glasgow_coma_scale
+from medimetry.neuro import gcs_score
+
+
+def _gcs(*args):
+    score = gcs_score(*args)
+    return score, gcs_category(score)
+
+
+def _gcs_from(*args):
+    score = gcs_from_scores(*args)
+    return score, gcs_category(score)
 
 
 def test_gcs_maximum_score():
     """Test GCS with maximum possible score (15) - mild injury."""
-    score, category = glasgow_coma_scale(EyeResponse.SPONTANEOUS, VerbalResponse.ORIENTED, MotorResponse.OBEYS_COMMANDS)
+    score, category = _gcs(EyeResponse.SPONTANEOUS, VerbalResponse.ORIENTED, MotorResponse.OBEYS_COMMANDS)
     assert score == 15
     assert category == GCSCategory.MILD
 
 
 def test_gcs_minimum_score():
     """Test GCS with minimum possible score (3) - severe injury."""
-    score, category = glasgow_coma_scale(EyeResponse.NONE, VerbalResponse.NONE, MotorResponse.NONE)
+    score, category = _gcs(EyeResponse.NONE, VerbalResponse.NONE, MotorResponse.NONE)
     assert score == 3
     assert category == GCSCategory.SEVERE
 
@@ -25,7 +36,7 @@ def test_gcs_minimum_score():
 def test_gcs_severe_boundary():
     """Test GCS severe category boundary (≤8)."""
     # Score of 8 (severe)
-    score, category = glasgow_coma_scale(
+    score, category = _gcs(
         EyeResponse.TO_PAIN,  # 2
         VerbalResponse.INCOMPREHENSIBLE_SOUNDS,  # 2
         MotorResponse.WITHDRAWAL_FROM_PAIN,  # 4
@@ -36,7 +47,7 @@ def test_gcs_severe_boundary():
 
 def test_gcs_moderate_boundary_low():
     """Test GCS moderate category lower boundary (9)."""
-    score, category = glasgow_coma_scale(
+    score, category = _gcs(
         EyeResponse.TO_VERBAL,  # 3
         VerbalResponse.INCOMPREHENSIBLE_SOUNDS,  # 2
         MotorResponse.WITHDRAWAL_FROM_PAIN,  # 4
@@ -47,7 +58,7 @@ def test_gcs_moderate_boundary_low():
 
 def test_gcs_moderate_boundary_high():
     """Test GCS moderate category upper boundary (12)."""
-    score, category = glasgow_coma_scale(
+    score, category = _gcs(
         EyeResponse.SPONTANEOUS,  # 4
         VerbalResponse.CONFUSED,  # 4
         MotorResponse.WITHDRAWAL_FROM_PAIN,  # 4
@@ -58,7 +69,7 @@ def test_gcs_moderate_boundary_high():
 
 def test_gcs_mild_boundary():
     """Test GCS mild category boundary (≥13)."""
-    score, category = glasgow_coma_scale(
+    score, category = _gcs(
         EyeResponse.SPONTANEOUS,  # 4
         VerbalResponse.ORIENTED,  # 5
         MotorResponse.WITHDRAWAL_FROM_PAIN,  # 4
@@ -69,21 +80,21 @@ def test_gcs_mild_boundary():
 
 def test_gcs_from_scores_valid():
     """Test GCS calculation from integer scores."""
-    score, category = gcs_from_scores(4, 5, 6)
+    score, category = _gcs_from(4, 5, 6)
     assert score == 15
     assert category == GCSCategory.MILD
 
 
 def test_gcs_from_scores_moderate():
     """Test GCS from scores resulting in moderate injury."""
-    score, category = gcs_from_scores(3, 3, 4)
+    score, category = _gcs_from(3, 3, 4)
     assert score == 10
     assert category == GCSCategory.MODERATE
 
 
 def test_gcs_from_scores_severe():
     """Test GCS from scores resulting in severe injury."""
-    score, category = gcs_from_scores(1, 2, 3)
+    score, category = _gcs_from(1, 2, 3)
     assert score == 6
     assert category == GCSCategory.SEVERE
 
@@ -91,19 +102,19 @@ def test_gcs_from_scores_severe():
 def test_gcs_invalid_eye_response():
     """Test that ValueError is raised for invalid eye response."""
     with pytest.raises(ValueError, match="Eye response must be an EyeResponse enum"):
-        glasgow_coma_scale("invalid", VerbalResponse.ORIENTED, MotorResponse.OBEYS_COMMANDS)
+        gcs_score("invalid", VerbalResponse.ORIENTED, MotorResponse.OBEYS_COMMANDS)
 
 
 def test_gcs_invalid_verbal_response():
     """Test that ValueError is raised for invalid verbal response."""
     with pytest.raises(ValueError, match="Verbal response must be a VerbalResponse enum"):
-        glasgow_coma_scale(EyeResponse.SPONTANEOUS, "invalid", MotorResponse.OBEYS_COMMANDS)
+        gcs_score(EyeResponse.SPONTANEOUS, "invalid", MotorResponse.OBEYS_COMMANDS)
 
 
 def test_gcs_invalid_motor_response():
     """Test that ValueError is raised for invalid motor response."""
     with pytest.raises(ValueError, match="Motor response must be a MotorResponse enum"):
-        glasgow_coma_scale(EyeResponse.SPONTANEOUS, VerbalResponse.ORIENTED, "invalid")
+        gcs_score(EyeResponse.SPONTANEOUS, VerbalResponse.ORIENTED, "invalid")
 
 
 def test_gcs_from_scores_invalid_eye():
@@ -138,7 +149,7 @@ def test_gcs_all_combinations_valid():
     for eye in range(1, 5):
         for verbal in range(1, 6):
             for motor in range(1, 7):
-                score, category = gcs_from_scores(eye, verbal, motor)
+                score, category = _gcs_from(eye, verbal, motor)
                 assert 3 <= score <= 15
                 assert category in [
                     GCSCategory.SEVERE,
@@ -150,17 +161,17 @@ def test_gcs_all_combinations_valid():
 def test_gcs_realistic_scenarios():
     """Test realistic clinical scenarios."""
     # Comatose patient
-    score1, category1 = gcs_from_scores(1, 1, 2)  # No eye-opening, no verbal, abnormal extension
+    score1, category1 = _gcs_from(1, 1, 2)  # No eye-opening, no verbal, abnormal extension
     assert score1 == 4
     assert category1 == GCSCategory.SEVERE
 
     # Confused patient
-    score2, category2 = gcs_from_scores(4, 4, 5)  # Eyes open, confused speech, localizes pain
+    score2, category2 = _gcs_from(4, 4, 5)  # Eyes open, confused speech, localizes pain
     assert score2 == 13
     assert category2 == GCSCategory.MILD
 
     # Moderate head injury
-    score3, category3 = gcs_from_scores(3, 2, 4)  # Opens to voice, incomprehensible, withdraws
+    score3, category3 = _gcs_from(3, 2, 4)  # Opens to voice, incomprehensible, withdraws
     assert score3 == 9
     assert category3 == GCSCategory.MODERATE
 
@@ -168,4 +179,37 @@ def test_gcs_realistic_scenarios():
 def test_gcs_not_testable_component_has_no_total():
     """A NOT_TESTABLE component must not be summed into a total score."""
     with pytest.raises(ValueError, match="not testable"):
-        glasgow_coma_scale(EyeResponse.SPONTANEOUS, VerbalResponse.NOT_TESTABLE, MotorResponse.OBEYS_COMMANDS)
+        gcs_score(EyeResponse.SPONTANEOUS, VerbalResponse.NOT_TESTABLE, MotorResponse.OBEYS_COMMANDS)
+
+
+@pytest.mark.parametrize(
+    ("score", "category"),
+    [
+        (3, GCSCategory.SEVERE),
+        (8, GCSCategory.SEVERE),
+        (9, GCSCategory.MODERATE),
+        (12, GCSCategory.MODERATE),
+        (13, GCSCategory.MILD),
+        (15, GCSCategory.MILD),
+    ],
+)
+def test_gcs_category_bands(score, category):
+    """Severity bands per Rimel 1982: severe 3-8, moderate 9-12, minor 13-15."""
+    assert gcs_category(score) == category
+
+
+def test_gcs_score_returns_int_only():
+    assert gcs_score(EyeResponse.SPONTANEOUS, VerbalResponse.ORIENTED, MotorResponse.OBEYS_COMMANDS) == 15
+    assert gcs_from_scores(1, 1, 1) == 3
+
+
+@pytest.mark.parametrize("score", [2, 16])
+def test_gcs_category_out_of_range(score):
+    with pytest.raises(ValueError, match="between 3 and 15"):
+        gcs_category(score)
+
+
+@pytest.mark.parametrize("score", [10.0, "10", True])
+def test_gcs_category_type(score):
+    with pytest.raises(TypeError, match="must be an int"):
+        gcs_category(score)

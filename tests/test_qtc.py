@@ -8,7 +8,7 @@ def test_qtc_bazett_normal_values():
     """Test QTc calculation using Bazett formula with normal values."""
     # QT = 400ms, HR = 60 bpm (RR = 1.0s)
     # QTc = 400 / √1.0 = 400ms
-    result = qtc_correction(400, 60, QtcCorrectionType.BAZETT)
+    result = qtc_correction(400, 60, QtcCorrectionType.BAZETT, rounded=True)
     assert result == 400.0
 
 
@@ -16,7 +16,7 @@ def test_qtc_bazett_fast_heart_rate():
     """Test QTc calculation using Bazett formula with fast heart rate."""
     # QT = 350ms, HR = 100 bpm (RR = 0.6s)
     # QTc = 350 / √0.6 ≈ 350 / 0.7746 ≈ 451.8ms
-    result = qtc_correction(350, 100, QtcCorrectionType.BAZETT)
+    result = qtc_correction(350, 100, QtcCorrectionType.BAZETT, rounded=True)
     assert result == 451.8
 
 
@@ -24,7 +24,7 @@ def test_qtc_fridericia_normal_values():
     """Test QTc calculation using Fridericia formula."""
     # QT = 400ms, HR = 60 bpm (RR = 1.0s)
     # QTc = 400 / ∛1.0 = 400ms
-    result = qtc_correction(400, 60, QtcCorrectionType.FRIDERICIA)
+    result = qtc_correction(400, 60, QtcCorrectionType.FRIDERICIA, rounded=True)
     assert result == 400.0
 
 
@@ -32,7 +32,7 @@ def test_qtc_framingham_normal_values():
     """Test QTc calculation using Framingham formula."""
     # QT = 400ms, HR = 60 bpm (RR = 1.0s)
     # QTc = 400 + 154 x (1 - 1.0) = 400ms
-    result = qtc_correction(400, 60, QtcCorrectionType.FRAMINGHAM)
+    result = qtc_correction(400, 60, QtcCorrectionType.FRAMINGHAM, rounded=True)
     assert result == 400.0
 
 
@@ -40,7 +40,7 @@ def test_qtc_hodges_normal_values():
     """Test QTc calculation using Hodges formula."""
     # QT = 400ms, HR = 60 bpm
     # QTc = 400 + 1.75 x (60 - 60) = 400ms
-    result = qtc_correction(400, 60, QtcCorrectionType.HODGES)
+    result = qtc_correction(400, 60, QtcCorrectionType.HODGES, rounded=True)
     assert result == 400.0
 
 
@@ -48,14 +48,14 @@ def test_qtc_hodges_fast_heart_rate():
     """Test QTc calculation using Hodges formula with fast heart rate."""
     # QT = 350ms, HR = 100 bpm
     # QTc = 350 + 1.75 x (100 - 60) = 350 + 70 = 420ms
-    result = qtc_correction(350, 100, QtcCorrectionType.HODGES)
+    result = qtc_correction(350, 100, QtcCorrectionType.HODGES, rounded=True)
     assert result == 420.0
 
 
 def test_qtc_default_formula():
     """Test that Bazett is the default formula."""
-    result1 = qtc_correction(400, 60)
-    result2 = qtc_correction(400, 60, QtcCorrectionType.BAZETT)
+    result1 = qtc_correction(400, 60, rounded=True)
+    result2 = qtc_correction(400, 60, QtcCorrectionType.BAZETT, rounded=True)
     assert result1 == result2
 
 
@@ -98,7 +98,7 @@ def test_qtc_unsupported_formula():
 def test_qtc_rounding():
     """Test that QTc is properly rounded to 1 decimal place."""
     # Use values that would result in more decimal places
-    result = qtc_correction(387.456, 73, QtcCorrectionType.BAZETT)
+    result = qtc_correction(387.456, 73, QtcCorrectionType.BAZETT, rounded=True)
     # Should be rounded to 1 decimal place
     decimal_str = str(result).split(".")
     if len(decimal_str) > 1:
@@ -109,7 +109,7 @@ def test_qtc_slow_heart_rate():
     """Test QTc calculation with slow heart rate."""
     # QT = 450ms, HR = 45 bpm (RR = 1.333s)
     # QTc = 450 / √1.333 ≈ 450 / 1.155 ≈ 389.7ms
-    result = qtc_correction(450, 45, QtcCorrectionType.BAZETT)
+    result = qtc_correction(450, 45, QtcCorrectionType.BAZETT, rounded=True)
     assert result == 389.7
 
 
@@ -118,10 +118,10 @@ def test_qtc_all_formulas_different_results():
     qt = 380
     hr = 90
 
-    bazett = qtc_correction(qt, hr, QtcCorrectionType.BAZETT)
-    fridericia = qtc_correction(qt, hr, QtcCorrectionType.FRIDERICIA)
-    framingham = qtc_correction(qt, hr, QtcCorrectionType.FRAMINGHAM)
-    hodges = qtc_correction(qt, hr, QtcCorrectionType.HODGES)
+    bazett = qtc_correction(qt, hr, QtcCorrectionType.BAZETT, rounded=True)
+    fridericia = qtc_correction(qt, hr, QtcCorrectionType.FRIDERICIA, rounded=True)
+    framingham = qtc_correction(qt, hr, QtcCorrectionType.FRAMINGHAM, rounded=True)
+    hodges = qtc_correction(qt, hr, QtcCorrectionType.HODGES, rounded=True)
 
     # All should be different for HR != 60
     results = [bazett, fridericia, framingham, hodges]

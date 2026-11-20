@@ -1,4 +1,8 @@
-def calcium_correction(total_calcium: float, albumin: float) -> float:
+from medimetry._formula import FormulaInfo
+from medimetry._formula import half_up
+
+
+def calcium_correction(total_calcium: float, albumin: float, *, rounded: bool = False) -> float:
     """
     Calculate albumin-corrected total serum calcium.
 
@@ -11,6 +15,7 @@ def calcium_correction(total_calcium: float, albumin: float) -> float:
     Args:
         total_calcium (float): Total serum calcium in mg/dl
         albumin (float): Serum albumin in g/dl
+        rounded (bool): Round to ``CALCIUM_CORRECTION.digits`` places (half up)
 
     Returns:
         float: Corrected calcium in mg/dl
@@ -25,4 +30,15 @@ def calcium_correction(total_calcium: float, albumin: float) -> float:
         raise ValueError("Albumin must be non-negative")
 
     corrected_calcium = total_calcium - albumin + normal_albumin
-    return round(corrected_calcium, 2)
+    return half_up(corrected_calcium, CALCIUM_CORRECTION.digits) if rounded else corrected_calcium
+
+
+CALCIUM_CORRECTION = FormulaInfo(
+    id="calcium_correction",
+    name="Albumin-corrected calcium (Payne)",
+    function=calcium_correction,
+    unit="mg/dL",
+    inputs={"total_calcium": "mg/dL", "albumin": "g/dL"},
+    digits=2,
+    citation="Payne RB, et al. Br Med J. 1973;4(5893):643-646. doi:10.1136/bmj.4.5893.643",
+)

@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum
-from gettext import gettext as _
 
 
 class GenevaRiskLevel(Enum):
@@ -9,21 +8,6 @@ class GenevaRiskLevel(Enum):
     LOW = "low"
     INTERMEDIATE = "intermediate"
     HIGH = "high"
-
-
-geneva_risk_level_titles = {
-    GenevaRiskLevel.LOW: _("Low"),
-    GenevaRiskLevel.INTERMEDIATE: _("Intermediate"),
-    GenevaRiskLevel.HIGH: _("High"),
-}
-
-
-@dataclass
-class GenevaScore:
-    """Geneva score result: total points and the published three-level probability category."""
-
-    score: int
-    risk_level: GenevaRiskLevel
 
 
 @dataclass
@@ -50,12 +34,12 @@ def geneva_simplified_score(
     active_cancer: bool = False,
     unilateral_leg_pain: bool = False,
     leg_pain_on_palpation_and_edema: bool = False,
-) -> GenevaScore:
+) -> int:
     """
     Calculate the Simplified Revised Geneva Score for clinical probability of pulmonary embolism.
 
-    All items score 1 point except heart rate >= 95 bpm (2 points). Three-level
-    classification: 0-1 low, 2-4 intermediate, >= 5 high.
+    All items score 1 point except heart rate >= 95 bpm (2 points). The probability category
+    is a separate step: ``geneva_simplified_category``.
 
     References:
         Klok FA, et al. Simplification of the revised Geneva score for assessing clinical
@@ -74,12 +58,12 @@ def geneva_simplified_score(
             *and* unilateral edema (one combined item)
 
     Returns:
-        GenevaScore: Total points (0-9) and probability category
+        int: Total points (0-9)
 
     Raises:
         ValueError: If age or heart rate are out of range
 
-    >>> geneva_simplified_score(age=70, heart_rate=100, previous_pe_dvt=True).score
+    >>> geneva_simplified_score(age=70, heart_rate=100, previous_pe_dvt=True)
     4
     """
     _validate_geneva_inputs(age, heart_rate)
@@ -102,14 +86,46 @@ def geneva_simplified_score(
         if item:
             score += 1
 
-    if score <= 1:
-        risk_level = GenevaRiskLevel.LOW
-    elif score <= 4:
-        risk_level = GenevaRiskLevel.INTERMEDIATE
-    else:
-        risk_level = GenevaRiskLevel.HIGH
+    return score
 
-    return GenevaScore(score=score, risk_level=risk_level)
+
+def _check_geneva_score(score: int, maximum: int) -> None:
+    if not isinstance(score, int) or isinstance(score, bool):
+        raise TypeError("Geneva score must be an int")
+    if not 0 <= score <= maximum:
+        raise ValueError(f"Geneva score must be between 0 and {maximum}")
+
+
+def geneva_simplified_category(score: int) -> GenevaRiskLevel:
+    """
+    Return the three-level clinical probability category of a Simplified Revised Geneva Score.
+
+    Three-level classification as published: 0-1 low, 2-4 intermediate, >= 5 high.
+
+    References:
+        Klok FA, et al. Simplification of the revised Geneva score for assessing clinical
+        probability of pulmonary embolism. Arch Intern Med. 2008;168(19):2131-2136.
+        doi:10.1001/archinte.168.19.2131
+
+    Args:
+        score (int): Simplified Revised Geneva Score (0-9), e.g. from ``geneva_simplified_score``
+
+    Returns:
+        GenevaRiskLevel: Probability category
+
+    Raises:
+        TypeError: If score is not an int
+        ValueError: If score is outside 0-9
+
+    >>> geneva_simplified_category(4)
+    <GenevaRiskLevel.INTERMEDIATE: 'intermediate'>
+    """
+    _check_geneva_score(score, 9)
+    if score <= 1:
+        return GenevaRiskLevel.LOW
+    if score <= 4:
+        return GenevaRiskLevel.INTERMEDIATE
+    return GenevaRiskLevel.HIGH
 
 
 def geneva_revised_score(
@@ -121,11 +137,11 @@ def geneva_revised_score(
     active_cancer: bool = False,
     unilateral_leg_pain: bool = False,
     leg_pain_on_palpation_and_edema: bool = False,
-) -> GenevaScore:
+) -> int:
     """
     Calculate the Revised Geneva Score for clinical probability of pulmonary embolism.
 
-    Three-level classification: 0-3 low, 4-10 intermediate, >= 11 high.
+    The probability category is a separate step: ``geneva_revised_category``.
 
     References:
         Le Gal G, et al. Prediction of pulmonary embolism in the emergency department:
@@ -144,12 +160,12 @@ def geneva_revised_score(
             *and* unilateral edema (one combined item, 4 points)
 
     Returns:
-        GenevaScore: Total points (0-22) and probability category
+        int: Total points (0-22)
 
     Raises:
         ValueError: If age or heart rate are out of range
 
-    >>> geneva_revised_score(age=70, heart_rate=100, previous_pe_dvt=True).score
+    >>> geneva_revised_score(age=70, heart_rate=100, previous_pe_dvt=True)
     9
     """
     _validate_geneva_inputs(age, heart_rate)
@@ -174,14 +190,39 @@ def geneva_revised_score(
     if leg_pain_on_palpation_and_edema:
         score += 4
 
-    if score <= 3:
-        risk_level = GenevaRiskLevel.LOW
-    elif score <= 10:
-        risk_level = GenevaRiskLevel.INTERMEDIATE
-    else:
-        risk_level = GenevaRiskLevel.HIGH
+    return score
 
-    return GenevaScore(score=score, risk_level=risk_level)
+
+def geneva_revised_category(score: int) -> GenevaRiskLevel:
+    """
+    Return the three-level clinical probability category of a Revised Geneva Score.
+
+    Three-level classification as published: 0-3 low, 4-10 intermediate, >= 11 high.
+
+    References:
+        Le Gal G, et al. Prediction of pulmonary embolism in the emergency department:
+        the revised Geneva score. Ann Intern Med. 2006;144(3):165-171.
+        doi:10.7326/0003-4819-144-3-200602070-00004
+
+    Args:
+        score (int): Revised Geneva Score (0-22), e.g. from ``geneva_revised_score``
+
+    Returns:
+        GenevaRiskLevel: Probability category
+
+    Raises:
+        TypeError: If score is not an int
+        ValueError: If score is outside 0-22
+
+    >>> geneva_revised_category(9)
+    <GenevaRiskLevel.INTERMEDIATE: 'intermediate'>
+    """
+    _check_geneva_score(score, 22)
+    if score <= 3:
+        return GenevaRiskLevel.LOW
+    if score <= 10:
+        return GenevaRiskLevel.INTERMEDIATE
+    return GenevaRiskLevel.HIGH
 
 
 def perc_rule(

@@ -119,9 +119,8 @@ a fine minor grid (0.5 kg, 1 cm) under labeled major gridlines.
   (365.25 / 12). Pass `months * DAYS_PER_MONTH` for ages in months.
 - **Linear interpolation** of L, M and S between the two adjacent table rows. Keys outside the table range raise
   `ValueError`; there is no extrapolation.
-- **`growth_zscore` returns the raw, unrounded float.** Unlike the other modules (which round their results), the
-  z-score is meant for further computation and plotting, so rounding is left to the caller. `growth_percentile`
-  is rounded to one decimal place.
+- **Results are unrounded**, like every function of the library. `rounded=True` rounds `growth_zscore` to two and
+  `growth_percentile` to one place (half up).
 - **Plain LMS only.** WHO's adjusted z-scores for weight-based indicators (values beyond ±3 SD are recomputed
   relative to the SD2/SD3 distance) and CDC's 2022 extended BMI z-scores above the 95th percentile are *not*
   applied. Results beyond ±3 SD therefore differ from WHO Anthro / CDC tools in those regions.

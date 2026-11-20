@@ -10,6 +10,17 @@ uses semantic versioning
 * Input checks raise ValueError/TypeError instead of assert (asserts vanished under python -O)
 * Drop the unused labunits dependency; ship py.typed; run the docstring doctests in the test suite
 * Remove the cookiecutter bootstrap (ci/bootstrap.py, tox env bootstrap, jinja2 dev dependency)
+* All results unrounded; keyword-only `rounded=True` rounds half up to the formula's customary places
+* Add formulas.FORMULAS / formula(id): FormulaInfo per formula (UCUM units, input LOINC, digits, citation)
+* Formulas raise ValueError below their published minimum age (eGFR equations and Cockcroft-Gault: 18 years)
+* ckd_epi -> ckd_epi_2021; ckd_epi stays as a wrapper for the newest CKD-EPI creatinine equation
+* Cystatin C equations are functions of their own: ckd_epi_2021_cystatin, ekfc_cystatin (cystatin_c argument removed)
+* Remove bmi_with_category(_cm) and the import-time gettext titles (gfr/bmi/gcs/geneva *_titles)
+* GCS: `glasgow_coma_scale` -> `gcs_score` (int only); `gcs_from_scores` returns int; new `gcs_category(score)`
+* Child-Pugh: `child_pugh_score` returns the score only; new `child_pugh_category(score)` (Pugh 1973)
+* Geneva: score functions return int; new `geneva_simplified_category` / `geneva_revised_category`; `GenevaScore` gone
+* Framingham: `framingham_risk_score` -> `framingham_score`, `framingham_risk(points, gender)`, `framingham_category`
+* Tests: Framingham age/treated-SBP bands and risk tables, WHO download path, `_lms_rows`; CKD-EPI values documented
 
 ## [0.3.0] - 2026-11-19
 

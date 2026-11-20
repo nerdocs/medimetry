@@ -58,11 +58,12 @@ Flat domain-module layout — there is no class hierarchy, no plugin system, no 
 - `anthropometric.py` — BMI, BSA (multiple formulas via `BSAFormula` enum)
 - `growth.py` — pediatric growth charts: LMS z-score/percentile, `GrowthReference.CDC | WHO`, `GrowthIndicator`, `download_who_tables()`; see `docs/growth.md`
 - `cardiac.py` — QTc (Bazett/Fridericia/Framingham/Hodges via `QtcCorrectionType`)
-- `neuro.py` — GCS (raises if a component is NOT_TESTABLE)
+- `neuro.py` — GCS score and category (raises if a component is NOT_TESTABLE)
 - `pulmonary.py` — Simplified and Revised Geneva, PERC
 - `metabolic.py` — Child-Pugh
 - `lytes.py` — calcium correction
 - `laboratory.py` — zlog value of a result against its reference interval
+- `formulas.py` — registry of every numeric formula (`FORMULAS`, `formula(id)`); `_formula.py` holds `FormulaInfo` and `half_up`
 - `converters.py` — date-of-birth → age helpers (`dob2age`, `dob2age_tuple`)
 - `constants.py` — shared enums (`Gender`, `EthnicalRace`, `QtcCorrectionType`). Re-exported from package root (`from medimetry import Gender`).
 
@@ -70,7 +71,11 @@ Cross-cutting conventions:
 
 - All public functions are fully type-annotated and validate inputs with `raise ValueError` (value out of domain) or `raise TypeError` (wrong type). Never `assert`: it vanishes under `python -O`, and an unchecked negative creatinine then yields a complex eGFR.
 - `Gender` (enum) is always passed as the enum, never as a string. Functions check `isinstance(x, Gender)`.
-- User-visible strings are wrapped with `gettext` (`_(...)`) for i18n, even though no translations are shipped yet. Enum values are plain identifiers; translated titles live in `*_titles` dicts next to the enum.
+- No user-visible strings and no translations: categories are enums with plain identifiers; a consumer labels them in its own language. No import-time `gettext`.
+- A score function returns only the number (`gcs_score`, `child_pugh_score`, `framingham_score`); its category is a separate function (`gcs_category(score)`), so a consumer that must not interpret can leave it out.
+- Every computed value is returned unrounded. `rounded=True` (keyword-only) rounds to the formula's customary places, half up (`_formula.half_up`) — never `round()`, which rounds halves to even.
+- Every numeric formula declares a `FormulaInfo` next to it (id = function name, UCUM units of result and inputs, input LOINC, digits, citation, result LOINC, minimum age) and is listed in `formulas.FORMULAS`. Functions raise `ValueError` below the declared `min_age`. Convenience names (`ckd_epi` → newest CKD-EPI) are no ids.
+- Do not add a LOINC code to a `FormulaInfo` unless it is verified; `None` is fine.
 - Every public function docstring has a `References:` block citing the primary publication.
 - Growth-table data policy: CDC 2000 tables are bundled (`data/cdc/`, regenerate with `scripts/update_cdc_tables.py`). **WHO tables are never committed** (CC BY-NC-SA license); users download them with `download_who_tables()`. Both use the canonical `key;L;M;S` CSV layout.
 - Units are documented per-arg in docstrings (e.g. creatinine always mg/dl, GFR always ml/min/1.73m²).

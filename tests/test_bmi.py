@@ -4,28 +4,26 @@ from medimetry.anthropometric import BMICategory
 from medimetry.anthropometric import bmi
 from medimetry.anthropometric import bmi_category
 from medimetry.anthropometric import bmi_from_cm
-from medimetry.anthropometric import bmi_with_category
-from medimetry.anthropometric import bmi_with_category_cm
 
 
 def test_bmi_normal_calculation():
     """Test BMI calculation with normal values."""
     # 70 kg, 1.75 m = 22.9 BMI
-    result = bmi(70, 1.75)
+    result = bmi(70, 1.75, rounded=True)
     assert result == 22.9
 
 
 def test_bmi_from_cm_calculation():
     """Test BMI calculation with height in centimeters."""
     # 70 kg, 175 cm = 22.9 BMI
-    result = bmi_from_cm(70, 175)
+    result = bmi_from_cm(70, 175, rounded=True)
     assert result == 22.9
 
 
 def test_bmi_rounding():
     """Test that BMI is rounded to 1 decimal place."""
     # 68 kg, 1.73 m = 22.72... should round to 22.7
-    result = bmi(68, 1.73)
+    result = bmi(68, 1.73, rounded=True)
     assert result == 22.7
 
 
@@ -88,20 +86,6 @@ def test_bmi_category_boundaries():
     assert bmi_category(40.0) == BMICategory.OBESE_CLASS_III
 
 
-def test_bmi_with_category():
-    """Test BMI calculation with category classification."""
-    bmi_value, category = bmi_with_category(70, 1.75)
-    assert bmi_value == 22.9
-    assert category == BMICategory.NORMAL
-
-
-def test_bmi_with_category_cm():
-    """Test BMI calculation with category using centimeters."""
-    bmi_value, category = bmi_with_category_cm(70, 175)
-    assert bmi_value == 22.9
-    assert category == BMICategory.NORMAL
-
-
 def test_bmi_negative_weight():
     """Test that ValueError is raised for negative weight."""
     with pytest.raises(ValueError, match="Weight must be positive"):
@@ -153,12 +137,12 @@ def test_bmi_category_zero():
 def test_bmi_extreme_values():
     """Test BMI calculation with extreme but valid values."""
     # Very light person
-    result1 = bmi(40, 1.80)
+    result1 = bmi(40, 1.80, rounded=True)
     assert result1 == 12.3
     assert bmi_category(result1) == BMICategory.UNDERWEIGHT
 
     # Very heavy person
-    result2 = bmi(150, 1.70)
+    result2 = bmi(150, 1.70, rounded=True)
     assert result2 == 51.9
     assert bmi_category(result2) == BMICategory.OBESE_CLASS_III
 
@@ -166,25 +150,25 @@ def test_bmi_extreme_values():
 def test_bmi_realistic_scenarios():
     """Test realistic BMI scenarios."""
     # Average adult male
-    bmi_value1, category1 = bmi_with_category_cm(80, 180)
+    bmi_value1 = bmi_from_cm(80, 180, rounded=True)
     assert bmi_value1 == 24.7
-    assert category1 == BMICategory.NORMAL
+    assert bmi_category(bmi_value1) == BMICategory.NORMAL
 
     # Average adult female
-    bmi_value2, category2 = bmi_with_category_cm(65, 165)
+    bmi_value2 = bmi_from_cm(65, 165, rounded=True)
     assert bmi_value2 == 23.9
-    assert category2 == BMICategory.NORMAL
+    assert bmi_category(bmi_value2) == BMICategory.NORMAL
 
     # Athlete with high muscle mass
-    bmi_value3, category3 = bmi_with_category_cm(90, 180)
+    bmi_value3 = bmi_from_cm(90, 180, rounded=True)
     assert bmi_value3 == 27.8
-    assert category3 == BMICategory.OVERWEIGHT
+    assert bmi_category(bmi_value3) == BMICategory.OVERWEIGHT
 
 
 def test_bmi_precision():
     """Test BMI calculation precision."""
     # Test that calculation maintains precision before rounding
-    result = bmi(68.5, 1.732)  # Should be 22.82... rounded to 22.8
+    result = bmi(68.5, 1.732, rounded=True)  # Should be 22.82... rounded to 22.8
     assert result == 22.8
 
 

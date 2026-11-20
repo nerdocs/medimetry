@@ -4,6 +4,7 @@ import pytest
 
 from medimetry import Gender
 from medimetry.renal import ekfc
+from medimetry.renal import ekfc_cystatin
 
 
 def test_ekfc_male_adult_above_q():
@@ -44,14 +45,14 @@ def test_ekfc_with_cystatin_c_is_mean():
     """Cystatin C: Q = 0.83 + 0.005 x (age - 50) from 50 years; result is the mean of both."""
     egfr_cr = ekfc(creatinine=1.2, age=60, gender=Gender.MALE)
     egfr_cys = 107.3 * (1.0 / 0.88) ** -1.132 * 0.990**20
-    result = ekfc(creatinine=1.2, age=60, gender=Gender.MALE, cystatin_c=1.0)
+    result = ekfc_cystatin(creatinine=1.2, cystatin_c=1.0, age=60, gender=Gender.MALE)
     assert result == pytest.approx((egfr_cr + egfr_cys) / 2)
 
 
 def test_ekfc_cystatin_c_q_below_50():
     egfr_cr = ekfc(creatinine=0.7, age=30, gender=Gender.FEMALE)
     egfr_cys = 107.3 * (0.7 / 0.83) ** -0.322
-    result = ekfc(creatinine=0.7, age=30, gender=Gender.FEMALE, cystatin_c=0.7)
+    result = ekfc_cystatin(creatinine=0.7, cystatin_c=0.7, age=30, gender=Gender.FEMALE)
     assert result == pytest.approx((egfr_cr + egfr_cys) / 2)
 
 
@@ -67,7 +68,7 @@ def test_ekfc_zero_creatinine():
 
 def test_ekfc_zero_cystatin_c():
     with pytest.raises(ValueError):
-        ekfc(creatinine=1.0, age=50, gender=Gender.MALE, cystatin_c=0.0)
+        ekfc_cystatin(creatinine=1.0, cystatin_c=0.0, age=50, gender=Gender.MALE)
 
 
 def test_ekfc_invalid_gender():

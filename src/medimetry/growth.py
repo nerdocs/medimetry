@@ -32,6 +32,8 @@ from urllib.request import Request
 from urllib.request import urlopen
 from xml.etree import ElementTree
 
+from medimetry._formula import FormulaInfo
+from medimetry._formula import half_up
 from medimetry.constants import Gender
 
 DAYS_PER_MONTH = 30.4375  # 365.25 / 12
@@ -245,13 +247,14 @@ def growth_zscore(
     length_cm: float | None = None,
     reference: GrowthReference = GrowthReference.CDC,
     data_dir: Path | None = None,
+    rounded: bool = False,
 ) -> float:
     """
     Calculate the z-score of a measurement against a growth reference using the LMS method.
 
     z = ((value / M)^L - 1) / (L x S), or ln(value / M) / S if L = 0. L, M and S are linearly interpolated
     between the two adjacent table rows. Plain LMS only: no WHO adjusted z-scores (capping beyond +-3 SD) and no
-    CDC extended BMI z-scores are applied. The result is returned unrounded.
+    CDC extended BMI z-scores are applied.
 
     References:
         Cole TJ, Green PJ. Smoothing reference centile curves: the LMS method and penalized likelihood.
@@ -273,9 +276,10 @@ def growth_zscore(
             WEIGHT_FOR_LENGTH / WEIGHT_FOR_HEIGHT
         reference (GrowthReference): GrowthReference.CDC (bundled) or GrowthReference.WHO (user-downloaded)
         data_dir (Path, optional): Directory holding the WHO tables written by ``download_who_tables``
+        rounded (bool): Round to ``GROWTH_ZSCORE.digits`` places (half up)
 
     Returns:
-        float: z-score (standard deviation score), unrounded
+        float: z-score (standard deviation score)
 
     Raises:
         ValueError: If the value is not positive, the key argument is missing, mismatched or outside the table
@@ -284,7 +288,8 @@ def growth_zscore(
     >>> round(growth_zscore(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, age_days=24.5 * DAYS_PER_MONTH, value=15.68840631), 2)
     1.88
     """
-    return _zscore(indicator, gender, value, age_days, length_cm, reference, data_dir)
+    z = _zscore(indicator, gender, value, age_days, length_cm, reference, data_dir)
+    return half_up(z, GROWTH_ZSCORE.digits) if rounded else z
 
 
 def growth_percentile(
@@ -296,21 +301,46 @@ def growth_percentile(
     length_cm: float | None = None,
     reference: GrowthReference = GrowthReference.CDC,
     data_dir: Path | None = None,
+    rounded: bool = False,
 ) -> float:
     """
     Calculate the percentile of a measurement against a growth reference.
 
     The percentile is the standard normal cumulative distribution of the LMS z-score (see ``growth_zscore`` for
-    arguments, references and limitations).
+    arguments, references and limitations). ``rounded`` rounds to ``GROWTH_PERCENTILE.digits`` places (half up).
 
     Returns:
-        float: Percentile in the range 0-100, rounded to 1 decimal place
+        float: Percentile in the range 0-100
 
-    >>> growth_percentile(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, age_days=24.5 * DAYS_PER_MONTH, value=12.74154396)
+    >>> growth_percentile(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, age_days=24.5 * DAYS_PER_MONTH, value=12.74154396, rounded=True)
     50.0
     """
     z = _zscore(indicator, gender, value, age_days, length_cm, reference, data_dir)
-    return round(50 * (1 + math.erf(z / math.sqrt(2))), 1)
+    percentile = 50 * (1 + math.erf(z / math.sqrt(2)))
+    return half_up(percentile, GROWTH_PERCENTILE.digits) if rounded else percentile
+
+
+_GROWTH_CITATION = "Cole TJ, Green PJ. Stat Med. 1992;11(10):1305-1319 (LMS); CDC 2000 / WHO 2006/2007 reference tables"
+
+GROWTH_ZSCORE = FormulaInfo(
+    id="growth_zscore",
+    name="Growth z-score (LMS)",
+    function=growth_zscore,
+    unit="1",
+    inputs={},
+    digits=2,
+    citation=_GROWTH_CITATION,
+)
+
+GROWTH_PERCENTILE = FormulaInfo(
+    id="growth_percentile",
+    name="Growth percentile (LMS)",
+    function=growth_percentile,
+    unit="%",
+    inputs={},
+    digits=1,
+    citation=_GROWTH_CITATION,
+)
 
 
 def growth_value_at_percentile(

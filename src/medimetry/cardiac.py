@@ -1,3 +1,5 @@
+from medimetry._formula import FormulaInfo
+from medimetry._formula import half_up
 from medimetry.constants import QtcCorrectionType
 
 
@@ -5,6 +7,8 @@ def qtc_correction(
     qt_interval: float,
     heart_rate: int,
     formula: QtcCorrectionType = QtcCorrectionType.BAZETT,
+    *,
+    rounded: bool = False,
 ) -> float:
     """
     Calculate corrected QT interval (QTc) using various correction formulas.
@@ -24,9 +28,10 @@ def qtc_correction(
         formula (QtcCorrectionType): Correction formula to use (QtcCorrectionType.BAZETT,
         QtcCorrectionType.FRIDERICIA, QtcCorrectionType.FRAMINGHAM,
         QtcCorrectionType.HODGES)
+        rounded (bool): Round to ``QTC.digits`` places (half up)
 
     Returns:
-        float: Corrected QT interval (QTc) in milliseconds, rounded to 1 decimal place
+        float: Corrected QT interval (QTc) in milliseconds
 
     Raises:
         ValueError: If QT interval or heart rate are invalid
@@ -61,4 +66,15 @@ def qtc_correction(
             "QtcCorrectionType.HODGES"
         )
 
-    return round(qtc, 1)
+    return half_up(qtc, QTC.digits) if rounded else qtc
+
+
+QTC = FormulaInfo(
+    id="qtc_correction",
+    name="Corrected QT interval",
+    function=qtc_correction,
+    unit="ms",
+    inputs={"qt_interval": "ms", "heart_rate": "/min"},
+    digits=1,
+    citation="Bazett 1920, Fridericia 1920, Sagie 1992 (Framingham), Hodges 1983 — per QtcCorrectionType",
+)

@@ -1,5 +1,4 @@
 from enum import Enum
-from gettext import gettext as _
 
 
 class EyeResponse(Enum):
@@ -43,20 +42,13 @@ class GCSCategory(Enum):
     MILD = "mild"
 
 
-gcs_category_titles = {
-    GCSCategory.SEVERE: _("Severe"),
-    GCSCategory.MODERATE: _("Moderate"),
-    GCSCategory.MILD: _("Minor"),
-}
-
-
-def glasgow_coma_scale(
+def gcs_score(
     eye_response: EyeResponse,
     verbal_response: VerbalResponse,
     motor_response: MotorResponse,
-) -> tuple[int, GCSCategory]:
+) -> int:
     """
-    Calculate Glasgow Coma Scale score and severity category.
+    Calculate the Glasgow Coma Scale total score (sum of the three components).
 
     A total score is only defined when all three components are testable. If any
     component is NOT_TESTABLE, the components must be reported individually
@@ -68,21 +60,19 @@ def glasgow_coma_scale(
         Teasdale G, et al. The Glasgow Coma Scale at 40 years: standing the test of time.
         Lancet Neurol. 2014;13(8):844-854. doi:10.1016/S1474-4422(14)70120-6
 
-        Severity category (not part of Teasdale 1974; conventional grouping, severe 3-8,
-        moderate 9-12, mild 13-15):
-        Rimel RW, et al. Moderate head injury: completing the clinical spectrum of brain trauma.
-        Neurosurgery. 1982;11(3):344-351. doi:10.1227/00006123-198209000-00002
-
     Args:
         eye_response (EyeResponse): Eye opening response (1-4)
         verbal_response (VerbalResponse): Verbal response (1-5)
         motor_response (MotorResponse): Motor response (1-6)
 
     Returns:
-        tuple[int, GCSCategory]: Total GCS score (3-15) and severity category
+        int: Total GCS score (3-15)
 
     Raises:
         ValueError: If invalid response values are provided or a component is not testable
+
+    >>> gcs_score(EyeResponse.TO_VERBAL, VerbalResponse.CONFUSED, MotorResponse.LOCALIZES_PAIN)
+    12
     """
     if not isinstance(eye_response, EyeResponse):
         raise ValueError("Eye response must be an EyeResponse enum")
@@ -97,22 +87,15 @@ def glasgow_coma_scale(
     ):
         raise ValueError("GCS total is undefined when a component is not testable; report the components individually")
 
-    total_score = eye_response.value + verbal_response.value + motor_response.value
-
-    # Determine severity category
-    if total_score <= 8:
-        category = GCSCategory.SEVERE
-    elif total_score <= 12:
-        category = GCSCategory.MODERATE
-    else:
-        category = GCSCategory.MILD
-
-    return total_score, category
+    return eye_response.value + verbal_response.value + motor_response.value
 
 
-def gcs_from_scores(eye: int, verbal: int, motor: int) -> tuple[int, GCSCategory]:
+def gcs_from_scores(eye: int, verbal: int, motor: int) -> int:
     """
-    Calculate Glasgow Coma Scale from integer scores.
+    Calculate the Glasgow Coma Scale total score from integer component scores.
+
+    References:
+        Teasdale G, Jennett B. Lancet. 1974;2(7872):81-84. doi:10.1016/s0140-6736(74)91639-0
 
     Args:
         eye (int): Eye opening response score (1-4)
@@ -120,10 +103,13 @@ def gcs_from_scores(eye: int, verbal: int, motor: int) -> tuple[int, GCSCategory
         motor (int): Motor response score (1-6)
 
     Returns:
-        tuple[int, GCSCategory]: Total GCS score (3-15) and severity category
+        int: Total GCS score (3-15)
 
     Raises:
         ValueError: If scores are out of valid ranges
+
+    >>> gcs_from_scores(4, 5, 6)
+    15
     """
     if not (1 <= eye <= 4):
         raise ValueError("Eye response must be between 1 and 4")
@@ -132,8 +118,38 @@ def gcs_from_scores(eye: int, verbal: int, motor: int) -> tuple[int, GCSCategory
     if not (1 <= motor <= 6):
         raise ValueError("Motor response must be between 1 and 6")
 
-    eye_response = EyeResponse(eye)
-    verbal_response = VerbalResponse(verbal)
-    motor_response = MotorResponse(motor)
+    return gcs_score(EyeResponse(eye), VerbalResponse(verbal), MotorResponse(motor))
 
-    return glasgow_coma_scale(eye_response, verbal_response, motor_response)
+
+def gcs_category(score: int) -> GCSCategory:
+    """
+    Return the head injury severity category of a Glasgow Coma Scale total score.
+
+    The grouping is not part of Teasdale 1974: severe 3-8, moderate 9-12, mild ("minor") 13-15.
+
+    References:
+        Rimel RW, et al. Moderate head injury: completing the clinical spectrum of brain trauma.
+        Neurosurgery. 1982;11(3):344-351. doi:10.1227/00006123-198209000-00002
+
+    Args:
+        score (int): GCS total score (3-15), e.g. from ``gcs_score``
+
+    Returns:
+        GCSCategory: Severity category
+
+    Raises:
+        TypeError: If score is not an int
+        ValueError: If score is outside 3-15
+
+    >>> gcs_category(12)
+    <GCSCategory.MODERATE: 'moderate'>
+    """
+    if not isinstance(score, int) or isinstance(score, bool):
+        raise TypeError("GCS score must be an int")
+    if not 3 <= score <= 15:
+        raise ValueError("GCS score must be between 3 and 15")
+    if score <= 8:
+        return GCSCategory.SEVERE
+    if score <= 12:
+        return GCSCategory.MODERATE
+    return GCSCategory.MILD

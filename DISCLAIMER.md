@@ -15,8 +15,9 @@ not come from the publication of the formula itself (e.g. guideline risk bands o
 its source is cited separately and marked as such in the docstring. It does not interpret results, does not issue
 recommendations and does not replace clinical judgement.
 
-Translatable titles (the `*_titles` dictionaries) reproduce the terms of the cited publications. They are labels for
-displaying a category, not an interpretation of it.
+Scores and their categories are separate functions: a score function returns only the number, and the category
+function (where one exists) returns an enum whose name reproduces the term of the cited publication. Integrators that
+must not show an interpretation call the score function alone.
 
 ## Responsibility of integrators
 

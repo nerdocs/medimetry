@@ -31,9 +31,9 @@ def child_pugh_score(
     inr: float,
     ascites: AscitesSeverity,
     encephalopathy: EncephalopathyGrade,
-) -> tuple[int, ChildPughGrade]:
+) -> int:
     """
-    Calculate the Child-Pugh score as published by Pugh et al. (1973).
+    Calculate the Child-Pugh score (sum of five items, 1-3 points each) as published by Pugh et al. (1973).
 
     References:
         Pugh RN, et al. Transection of the oesophagus for bleeding oesophageal varices.
@@ -51,10 +51,13 @@ def child_pugh_score(
         encephalopathy (EncephalopathyGrade): Hepatic encephalopathy grade
 
     Returns:
-        tuple[int, ChildPughGrade]: Score (5-15) and corresponding grade (A/B/C)
+        int: Score (5-15)
 
     Raises:
         ValueError: If parameters are invalid
+
+    >>> child_pugh_score(1.5, 3.8, 1.2, AscitesSeverity.NONE, EncephalopathyGrade.NONE)
+    5
     """
     if bilirubin < 0:
         raise ValueError("Bilirubin must be non-negative")
@@ -110,12 +113,36 @@ def child_pugh_score(
     else:  # grade3-4
         score += 3
 
-    # Determine grade
-    if score <= 6:
-        grade = ChildPughGrade.A
-    elif score <= 9:
-        grade = ChildPughGrade.B
-    else:
-        grade = ChildPughGrade.C
+    return score
 
-    return score, grade
+
+def child_pugh_category(score: int) -> ChildPughGrade:
+    """
+    Return the Child-Pugh grade of a Child-Pugh score: A 5-6, B 7-9, C 10-15.
+
+    References:
+        Pugh RN, et al. Transection of the oesophagus for bleeding oesophageal varices.
+        Br J Surg. 1973;60(8):646-649. doi:10.1002/bjs.1800600817
+
+    Args:
+        score (int): Child-Pugh score (5-15), e.g. from ``child_pugh_score``
+
+    Returns:
+        ChildPughGrade: Grade A, B or C
+
+    Raises:
+        TypeError: If score is not an int
+        ValueError: If score is outside 5-15
+
+    >>> child_pugh_category(7)
+    <ChildPughGrade.B: 'B'>
+    """
+    if not isinstance(score, int) or isinstance(score, bool):
+        raise TypeError("Child-Pugh score must be an int")
+    if not 5 <= score <= 15:
+        raise ValueError("Child-Pugh score must be between 5 and 15")
+    if score <= 6:
+        return ChildPughGrade.A
+    if score <= 9:
+        return ChildPughGrade.B
+    return ChildPughGrade.C

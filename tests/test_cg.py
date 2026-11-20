@@ -7,7 +7,7 @@ from medimetry.renal import cockcroft_gault
 def test_cockcroft_gault_male_normal():
     """Test Cockcroft-Gault formula for normal male patient."""
     # 70-year-old male, 70kg, creatinine 1.0 mg/dl
-    result = cockcroft_gault(age=70, weight=70, creatinine=1.0, gender=Gender.MALE)
+    result = cockcroft_gault(age=70, weight=70, creatinine=1.0, gender=Gender.MALE, rounded=True)
     expected = round(((140 - 70) * 70) / (72 * 1.0), 1)
     assert result == expected
     assert result == 68.1
@@ -16,7 +16,7 @@ def test_cockcroft_gault_male_normal():
 def test_cockcroft_gault_female_normal():
     """Test Cockcroft-Gault formula for normal female patient."""
     # 70-year-old female, 60kg, creatinine 1.0 mg/dl
-    result = cockcroft_gault(age=70, weight=60, creatinine=1.0, gender=Gender.FEMALE)
+    result = cockcroft_gault(age=70, weight=60, creatinine=1.0, gender=Gender.FEMALE, rounded=True)
     expected = round(((140 - 70) * 60) / (72 * 1.0) * 0.85, 1)
     assert result == expected
     assert result == 49.6
@@ -25,7 +25,7 @@ def test_cockcroft_gault_female_normal():
 def test_cockcroft_gault_young_patient():
     """Test Cockcroft-Gault formula for young patient."""
     # 30-year-old male, 80kg, creatinine 0.8 mg/dl
-    result = cockcroft_gault(age=30, weight=80, creatinine=0.8, gender=Gender.MALE)
+    result = cockcroft_gault(age=30, weight=80, creatinine=0.8, gender=Gender.MALE, rounded=True)
     expected = round(((140 - 30) * 80) / (72 * 0.8), 1)
     assert result == expected
     assert result == 152.8
@@ -34,7 +34,7 @@ def test_cockcroft_gault_young_patient():
 def test_cockcroft_gault_elderly_patient():
     """Test Cockcroft-Gault formula for elderly patient."""
     # 85-year-old female, 55kg, creatinine 1.5 mg/dl
-    result = cockcroft_gault(age=85, weight=55, creatinine=1.5, gender=Gender.FEMALE)
+    result = cockcroft_gault(age=85, weight=55, creatinine=1.5, gender=Gender.FEMALE, rounded=True)
     expected = round(((140 - 85) * 55) / (72 * 1.5) * 0.85, 1)
     assert result == expected
     assert result == 23.8
@@ -43,7 +43,7 @@ def test_cockcroft_gault_elderly_patient():
 def test_cockcroft_gault_high_creatinine():
     """Test Cockcroft-Gault formula with high creatinine."""
     # 60-year-old male, 75kg, creatinine 3.0 mg/dl
-    result = cockcroft_gault(age=60, weight=75, creatinine=3.0, gender=Gender.MALE)
+    result = cockcroft_gault(age=60, weight=75, creatinine=3.0, gender=Gender.MALE, rounded=True)
     expected = round(((140 - 60) * 75) / (72 * 3.0), 1)
     assert result == expected
     assert result == 27.8
@@ -104,22 +104,22 @@ def test_cockcroft_gault_invalid_gender():
 def test_cockcroft_gault_realistic_scenarios():
     """Test Cockcroft-Gault formula with realistic clinical scenarios."""
     # Healthy young adult male
-    result = cockcroft_gault(age=25, weight=75, creatinine=0.9, gender=Gender.MALE)
+    result = cockcroft_gault(age=25, weight=75, creatinine=0.9, gender=Gender.MALE, rounded=True)
     assert result > 100  # Should have good kidney function
 
     # Elderly female with mild kidney impairment
-    result = cockcroft_gault(age=80, weight=60, creatinine=1.3, gender=Gender.FEMALE)
+    result = cockcroft_gault(age=80, weight=60, creatinine=1.3, gender=Gender.FEMALE, rounded=True)
     assert 30 < result < 60  # Moderate kidney impairment
 
     # Middle-aged male with normal function
-    result = cockcroft_gault(age=45, weight=80, creatinine=1.1, gender=Gender.MALE)
+    result = cockcroft_gault(age=45, weight=80, creatinine=1.1, gender=Gender.MALE, rounded=True)
     assert 60 < result < 120  # Normal to mildly reduced
 
 
 def test_cockcroft_gault_gender_difference():
     """Test that female patients have lower clearance than male patients."""
-    male_result = cockcroft_gault(age=60, weight=70, creatinine=1.0, gender=Gender.MALE)
-    female_result = cockcroft_gault(age=60, weight=70, creatinine=1.0, gender=Gender.FEMALE)
+    male_result = cockcroft_gault(age=60, weight=70, creatinine=1.0, gender=Gender.MALE, rounded=True)
+    female_result = cockcroft_gault(age=60, weight=70, creatinine=1.0, gender=Gender.FEMALE, rounded=True)
 
     # Female result should be 85% of male result
     expected_female = round(male_result * 0.85, 1)
@@ -129,5 +129,5 @@ def test_cockcroft_gault_gender_difference():
 
 def test_cockcroft_gault_return_type():
     """Test that Cockcroft-Gault returns a float."""
-    result = cockcroft_gault(age=50, weight=70, creatinine=1.0, gender=Gender.MALE)
+    result = cockcroft_gault(age=50, weight=70, creatinine=1.0, gender=Gender.MALE, rounded=True)
     assert isinstance(result, float)

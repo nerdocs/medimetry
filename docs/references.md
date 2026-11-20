@@ -47,13 +47,18 @@ Verification levels:
 
 ## Cardiovascular (`cardiovasc.py`)
 
-### `framingham_risk_score`
+### `framingham_score`, `framingham_risk`, `framingham_category`
 
-- Points and risk: D'Agostino RB Sr, et al. Circulation. 2008;117(6):743-753.
-  doi:10.1161/CIRCULATIONAHA.107.699579 (**secondary**). Total and HDL cholesterol are taken in mmol/l and
-  converted with 38.67 to the published mg/dl bands (total cholesterol 160/200/240/280, HDL 35/45/50/60 mg/dl).
-- Risk level: Anderson TJ, et al. Can J Cardiol. 2016;32(11):1263-1282. doi:10.1016/j.cjca.2016.07.510
-  (**primary**, guideline summary). Not part of D'Agostino 2008: low < 10 %, intermediate 10–19 %, high ≥ 20 %.
+- Points (`framingham_score`) and 10-year risk (`framingham_risk`): D'Agostino RB Sr, et al. Circulation.
+  2008;117(6):743-753. doi:10.1161/CIRCULATIONAHA.107.699579 (**secondary**). The full text was not accessible
+  (403); every point band and both risk tables were checked against a verbatim reproduction citing Tables 5–8 of
+  the paper: Novartis statistical analysis plan CABL001J12301, SAP Amendment 2, section 5.5.1, Tables 5-3 to 5-6
+  (clinicaltrials.gov NCT04971226), which also gives a worked example (woman, 43 y, 7 points). Total and HDL
+  cholesterol are taken in mmol/l and converted with 38.67 to the published mg/dl bands (total cholesterol
+  160/200/240/280, HDL 35/45/50/60 mg/dl).
+- Risk level (`framingham_category`): Anderson TJ, et al. Can J Cardiol. 2016;32(11):1263-1282.
+  doi:10.1016/j.cjca.2016.07.510 (**primary**, guideline summary). Not part of D'Agostino 2008: low < 10 %,
+  intermediate 10–19 %, high ≥ 20 %.
 
 ## Electrolytes (`lytes.py`)
 
@@ -65,21 +70,22 @@ Verification levels:
 
 ## Metabolic (`metabolic.py`)
 
-### `child_pugh_score`
+### `child_pugh_score`, `child_pugh_category`
 
 - Pugh RN, et al. Br J Surg. 1973;60(8):646-649. doi:10.1002/bjs.1800600817 (**secondary**). Pugh grades the
-  prothrombin time prolongation in seconds (< 4, 4–6, > 6 s).
+  prothrombin time prolongation in seconds (< 4, 4–6, > 6 s). Grades (`child_pugh_category`): A 5–6, B 7–9,
+  C 10–15.
 - INR bands < 1.7 / 1.7–2.3 / > 2.3 (**unverified**): widely used, but no primary source was found. Durand & Valla
   2005 (J Hepatol 42 Suppl 1:S100-107), often cited for them, lists the prothrombin time in seconds.
 
 ## Neurological (`neuro.py`)
 
-### `glasgow_coma_scale`
+### `gcs_score`, `gcs_from_scores`, `gcs_category`
 
 - Teasdale G, Jennett B. Lancet. 1974;2(7872):81-84. doi:10.1016/s0140-6736(74)91639-0 (**secondary**).
-  Component scores and sum.
-- Category: Rimel RW, et al. Neurosurgery. 1982;11(3):344-351. doi:10.1227/00006123-198209000-00002 (**primary**,
-  abstract). Not part of Teasdale 1974: "severe, 3-8; moderate, 9-12; and minor, 13-15".
+  Component scores and sum (`gcs_score`, `gcs_from_scores`).
+- Category (`gcs_category`): Rimel RW, et al. Neurosurgery. 1982;11(3):344-351.
+  doi:10.1227/00006123-198209000-00002 (**primary**, abstract). Not part of Teasdale 1974: "severe, 3-8; moderate, 9-12; and minor, 13-15".
 
 ## Anthropometric (`anthropometric.py`)
 

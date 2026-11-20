@@ -14,82 +14,82 @@ from medimetry.anthropometric import bsa_mosteller
 def test_bsa_mosteller():
     """Test BSA calculation using Mosteller formula."""
     # Standard adult male (70kg, 175cm)
-    result = bsa_mosteller(70, 1.75)
+    result = bsa_mosteller(70, 1.75, rounded=True)
     assert result == 1.84
 
     # Standard adult female (60kg, 165cm)
-    result = bsa_mosteller(60, 1.65)
+    result = bsa_mosteller(60, 1.65, rounded=True)
     assert result == 1.66
 
 
 def test_bsa_dubois():
     """Test BSA calculation using DuBois formula."""
     # Standard adult male (70kg, 175cm)
-    result = bsa_dubois(70, 1.75)
+    result = bsa_dubois(70, 1.75, rounded=True)
     assert result == 1.85
 
     # Standard adult female (60kg, 165cm)
-    result = bsa_dubois(60, 1.65)
+    result = bsa_dubois(60, 1.65, rounded=True)
     assert result == 1.66
 
 
 def test_bsa_haycock():
     """Test BSA calculation using Haycock formula."""
     # Standard adult male (70kg, 175cm)
-    result = bsa_haycock(70, 1.75)
+    result = bsa_haycock(70, 1.75, rounded=True)
     assert result == 1.85
 
     # Standard adult female (60kg, 165cm)
-    result = bsa_haycock(60, 1.65)
+    result = bsa_haycock(60, 1.65, rounded=True)
     assert result == 1.66
 
 
 def test_bsa_gehan_george():
     """Test BSA calculation using Gehan-George formula."""
     # Standard adult male (70kg, 175cm)
-    result = bsa_gehan_george(70, 1.75)
+    result = bsa_gehan_george(70, 1.75, rounded=True)
     assert result == 1.85
 
     # Standard adult female (60kg, 165cm)
-    result = bsa_gehan_george(60, 1.65)
+    result = bsa_gehan_george(60, 1.65, rounded=True)
     assert result == 1.67
 
 
 def test_bsa_boyd():
     """Test BSA calculation using Boyd formula."""
     # Standard adult male (70kg, 175cm)
-    result = bsa_boyd(70, 1.75)
+    result = bsa_boyd(70, 1.75, rounded=True)
     assert result == 1.85
 
     # Standard adult female (60kg, 165cm)
-    result = bsa_boyd(60, 1.65)
+    result = bsa_boyd(60, 1.65, rounded=True)
     assert result == 1.67
 
 
 def test_bsa_default_formula():
     """Test BSA calculation with default formula (Mosteller)."""
-    result = bsa(70, 1.75)
-    expected = bsa_mosteller(70, 1.75)
+    result = bsa(70, 1.75, rounded=True)
+    expected = bsa_mosteller(70, 1.75, rounded=True)
     assert result == expected
 
 
 def test_bsa_with_specific_formula():
     """Test BSA calculation with specific formula."""
-    result = bsa(70, 1.75, BSAFormula.DUBOIS)
-    expected = bsa_dubois(70, 1.75)
+    result = bsa(70, 1.75, BSAFormula.DUBOIS, rounded=True)
+    expected = bsa_dubois(70, 1.75, rounded=True)
     assert result == expected
 
 
 def test_bsa_from_cm():
     """Test BSA calculation with height in centimeters."""
-    result = bsa_from_cm(70, 175)
-    expected = bsa(70, 1.75)
+    result = bsa_from_cm(70, 175, rounded=True)
+    expected = bsa(70, 1.75, rounded=True)
     assert result == expected
 
 
 def test_bsa_all_formulas():
     """Test BSA calculation using all formulas."""
-    results = bsa_all_formulas(70, 1.75)
+    results = bsa_all_formulas(70, 1.75, rounded=True)
 
     assert len(results) == 5
     assert "DuBois" in results
@@ -106,11 +106,11 @@ def test_bsa_all_formulas():
 def test_bsa_extreme_values():
     """Test BSA calculation with extreme but valid values."""
     # Very small person (child-like)
-    result = bsa_mosteller(20, 1.20)
+    result = bsa_mosteller(20, 1.20, rounded=True)
     assert result == 0.82
 
     # Very large person
-    result = bsa_mosteller(120, 2.00)
+    result = bsa_mosteller(120, 2.00, rounded=True)
     assert result == 2.58
 
 
@@ -143,7 +143,7 @@ def test_bsa_invalid_height_cm():
 
 def test_bsa_precision():
     """Test BSA calculation precision (rounded to 2 decimal places)."""
-    result = bsa_mosteller(70.123, 1.754)
+    result = bsa_mosteller(70.123, 1.754, rounded=True)
     # Should be rounded to 2 decimal places
     assert len(str(result).split(".")[-1]) <= 2
 
@@ -151,22 +151,22 @@ def test_bsa_precision():
 def test_bsa_realistic_scenarios():
     """Test BSA with realistic medical scenarios."""
     # Pediatric patient (10 years old)
-    child_bsa = bsa_mosteller(30, 1.35)
+    child_bsa = bsa_mosteller(30, 1.35, rounded=True)
     assert 0.8 <= child_bsa <= 1.2
 
     # Adult athlete
-    athlete_bsa = bsa_mosteller(85, 1.85)
+    athlete_bsa = bsa_mosteller(85, 1.85, rounded=True)
     assert 1.9 <= athlete_bsa <= 2.3
 
     # Elderly patient
-    elderly_bsa = bsa_mosteller(65, 1.65)
+    elderly_bsa = bsa_mosteller(65, 1.65, rounded=True)
     assert 1.5 <= elderly_bsa <= 1.8
 
 
 def test_bsa_formula_consistency():
     """Test that different formulas give reasonably similar results."""
     weight, height = 70, 1.75
-    results = bsa_all_formulas(weight, height)
+    results = bsa_all_formulas(weight, height, rounded=True)
 
     values = list(results.values())
     min_val = min(values)

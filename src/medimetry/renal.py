@@ -1,11 +1,13 @@
 import math
-from gettext import gettext as _
 
+from medimetry._formula import FormulaInfo
+from medimetry._formula import check_age
+from medimetry._formula import half_up
 from medimetry.constants import EthnicalRace
 from medimetry.constants import Gender
 
 
-def acr(urine_albumin: float, urine_creatinine: float) -> float:
+def acr(urine_albumin: float, urine_creatinine: float, *, rounded: bool = False) -> float:
     """
     Calculate the urine Albumin-to-Creatinine Ratio (ACR) in mg/g.
 
@@ -20,6 +22,7 @@ def acr(urine_albumin: float, urine_creatinine: float) -> float:
     Args:
         urine_albumin (float): Urine albumin concentration in mg/dl
         urine_creatinine (float): Urine creatinine concentration in mg/dl
+        rounded (bool): Round to ``ACR.digits`` places (half up)
 
     Returns:
         float: Albumin-to-Creatinine Ratio in mg/g
@@ -32,7 +35,20 @@ def acr(urine_albumin: float, urine_creatinine: float) -> float:
     if not (urine_creatinine > 0):
         raise ValueError("Urine creatinine must be positive")
 
-    return urine_albumin / urine_creatinine * 1000
+    value = urine_albumin / urine_creatinine * 1000
+    return half_up(value, ACR.digits) if rounded else value
+
+
+ACR = FormulaInfo(
+    id="acr",
+    name="Albumin/creatinine ratio",
+    function=acr,
+    unit="mg/g",
+    inputs={"urine_albumin": "mg/dL", "urine_creatinine": "mg/dL"},
+    digits=1,
+    citation="KDIGO 2012 CKD guideline. Kidney Int Suppl. 2013;3(1):1-150. doi:10.1038/kisup.2012.73",
+    loinc="9318-7",
+)
 
 
 def cockcroft_gault(
@@ -40,12 +56,14 @@ def cockcroft_gault(
     weight: float,
     creatinine: float,
     gender: Gender,
+    *,
+    rounded: bool = False,
 ) -> float:
     """
     Calculate creatinine clearance using Cockcroft-Gault formula.
 
-    The equation was derived from 249 participants. It requires body weight and
-    returns creatinine clearance in ml/min, not normalized to body surface area.
+    The equation was derived from 249 participants aged 18-92 years. It requires body
+    weight and returns creatinine clearance in ml/min, not normalized to body surface area.
 
     References:
         Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine.
@@ -56,9 +74,10 @@ def cockcroft_gault(
         weight (float): Weight in kg
         creatinine (float): Serum creatinine in mg/dl
         gender (Gender): Gender.MALE or Gender.FEMALE
+        rounded (bool): Round to ``COCKCROFT_GAULT.digits`` places (half up)
 
     Returns:
-        float: Creatinine clearance in mL/min, rounded to 1 decimal place
+        float: Creatinine clearance in mL/min
     """
     if not (weight > 0):
         raise ValueError("Weight must be positive")
@@ -68,6 +87,7 @@ def cockcroft_gault(
         raise ValueError("Creatinine must not be negative")
     if gender not in (Gender.MALE, Gender.FEMALE):
         raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+    check_age(COCKCROFT_GAULT, age)
 
     if weight > 300:
         raise ValueError("Weight must be lower than 300 kilograms")
@@ -80,10 +100,22 @@ def cockcroft_gault(
     if gender == Gender.FEMALE:
         clearance *= 0.85
 
-    return round(clearance, 1)
+    return half_up(clearance, COCKCROFT_GAULT.digits) if rounded else clearance
 
 
-def mdrd(creatinine: float, age: int, gender: Gender, race: EthnicalRace = EthnicalRace.OTHER) -> float:
+COCKCROFT_GAULT = FormulaInfo(
+    id="cockcroft_gault",
+    name="Creatinine clearance (Cockcroft-Gault)",
+    function=cockcroft_gault,
+    unit="mL/min",
+    inputs={"weight": "kg", "creatinine": "mg/dL"},
+    digits=1,
+    citation="Cockcroft DW, Gault MH. Nephron. 1976;16(1):31-41. doi:10.1159/000180580",
+    min_age=18,
+)
+
+
+def mdrd(creatinine: float, age: float, gender: Gender, race: EthnicalRace = EthnicalRace.OTHER, *, rounded: bool = False) -> float:
     """
     Calculate eGFR using MDRD (Modification of Diet in Renal Disease) formula.
 
@@ -94,13 +126,14 @@ def mdrd(creatinine: float, age: int, gender: Gender, race: EthnicalRace = Ethni
         diet in renal disease study equation for estimating glomerular filtration rate.
         Ann Intern Med. 2006;145(4):247-254. doi:10.7326/0003-4819-145-4-200608150-00004
 
-    The equation was derived in adults (> 18 years) with chronic kidney disease.
+    The equation was derived in adults (> 18 years) with chronic kidney disease; below 18 years it raises.
 
     Args:
         creatinine (float): Serum creatinine in mg/dl
-        age (int): Age in years
+        age (float): Age in years
         gender (Gender): Gender.MALE or Gender.FEMALE
         race (EthnicalRace): EthnicalRace.AFRICAN_AMERICAN applies the 1.212 factor, any other value does not
+        rounded (bool): Round to ``MDRD.digits`` places (half up)
 
     Returns:
         float: Estimated GFR in mL/min/1.73m²
@@ -113,6 +146,7 @@ def mdrd(creatinine: float, age: int, gender: Gender, race: EthnicalRace = Ethni
         raise TypeError("Gender must be Gender.MALE or Gender.FEMALE")
     if gender not in (Gender.MALE, Gender.FEMALE):
         raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+    check_age(MDRD, age)
 
     # Base MDRD formula: 175 x (creatinine)^-1.154 x (age)^-0.203
     egfr = 175 * (creatinine**-1.154) * (age**-0.203)
@@ -125,98 +159,164 @@ def mdrd(creatinine: float, age: int, gender: Gender, race: EthnicalRace = Ethni
     if race == EthnicalRace.AFRICAN_AMERICAN:
         egfr *= 1.212
 
-    return egfr
+    return half_up(egfr, MDRD.digits) if rounded else egfr
 
 
-def ckd_epi(creatinine: float, age: int, gender: Gender, cystatin_c: float | None = None) -> float:
+EGFR_UNIT = "mL/min/{1.73_m2}"
+
+MDRD = FormulaInfo(
+    id="mdrd",
+    name="eGFR (MDRD)",
+    function=mdrd,
+    unit=EGFR_UNIT,
+    inputs={"creatinine": "mg/dL"},
+    input_loinc={"creatinine": "2160-0"},
+    digits=1,
+    citation="Levey AS, et al. Ann Intern Med. 2006;145(4):247-254. doi:10.7326/0003-4819-145-4-200608150-00004",
+    loinc="33914-3",
+    min_age=18,
+)
+
+
+def _check_ckd_epi(creatinine: float, gender: Gender) -> None:
+    if not (creatinine > 0):
+        raise ValueError("Creatinine must be positive")
+    if not isinstance(gender, Gender):
+        raise TypeError("Gender must be of type 'Gender'")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+
+
+def ckd_epi_2021(creatinine: float, age: float, gender: Gender, *, rounded: bool = False) -> float:
     """
-    Calculate eGFR using 2021 CKD-EPI equation (Chronic Kidney Disease Epidemiology Collaboration)
-    formula, which does not use a "race" as parameter.
+    Calculate eGFR using the 2021 CKD-EPI creatinine equation, which does not use race.
 
-    This is the 2021 equation; the 2009 creatinine equation is ``ckd_epi_2009``.
+    eGFR = 142 x min(Scr/k, 1)^a x max(Scr/k, 1)^-1.200 x 0.9938^age x (1.012 if female)
+
+    with k = 0.7 (female) / 0.9 (male) and a = -0.241 (female) / -0.302 (male). The equation was
+    derived in adults; below 18 years it raises. With cystatin C: ``ckd_epi_2021_cystatin``.
 
     References:
         Inker LA, et al. New Creatinine- and Cystatin C-Based Equations to Estimate GFR without Race.
         N Engl J Med. 2021;385(19):1737-1749. doi:10.1056/NEJMoa2102953
         https://www.kidney.org/ckd-epi-creatinine-equation-2021
-        https://www.kidney.org/ckd-epi-creatinine-cystatin-equation-2021
 
     For the same creatinine value, the 2021 equation will estimate a slightly-too-low
     GFR for Black patients and a slightly-too-high GFR for non-Black patients.
 
     Args:
         creatinine (float): Serum creatinine in mg/dl
-        age (int): Age in years
+        age (float): Age in years
         gender (Gender): Gender (Gender.MALE or Gender.FEMALE)
-        cystatin_c (float, optional): Serum cystatin C in mg/L - if given, the
-                creatinine-cystatin C equation is used
+        rounded (bool): Round to ``CKD_EPI_2021.digits`` places (half up)
 
     Returns:
         float: Estimated GFR in mL/min/1.73m²
     """
-    if not (creatinine > 0):
-        raise ValueError("Creatinine must be positive")
-    if not (age > 0):
-        raise ValueError("Age must be positive")
-    if not isinstance(gender, Gender):
-        raise TypeError("Gender must be of type 'Gender'")
-    if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
-    if cystatin_c is not None:
-        if not (cystatin_c > 0):
-            raise ValueError("Cystatin C must be positive, if given")
+    _check_ckd_epi(creatinine, gender)
+    check_age(CKD_EPI_2021, age)
 
-    if cystatin_c is None:
-        # Formula WITHOUT Cystatin C
-
-        # Define kappa and alpha based on gender
-        if gender == Gender.FEMALE:
-            kappa = 0.7
-            alpha = -0.241
-            gender_factor = 1.012
-        else:
-            kappa = 0.9
-            alpha = -0.302
-            gender_factor = 1.0
-
-        # Calculate min and max terms
-        cr_kappa_ratio = creatinine / kappa
-
-        # Base CKD-EPI formula
-        return 142 * min(cr_kappa_ratio, 1.0) ** alpha * max(cr_kappa_ratio, 1.0) ** -1.2 * (0.9938**age) * gender_factor
+    if gender == Gender.FEMALE:
+        kappa, alpha, gender_factor = 0.7, -0.241, 1.012
     else:
-        # Formula WITH Cystatin C
-        # Define kappa and alpha based on gender
-        if gender == Gender.FEMALE:
-            kappa = 0.7
-            alpha = -0.219
-            gender_factor = 0.963
-        else:
-            kappa = 0.9
-            alpha = -0.144
-            gender_factor = 1.0
+        kappa, alpha, gender_factor = 0.9, -0.302, 1.0
 
-        cr_kappa_ratio = creatinine / kappa
-
-        return (
-            135
-            * min(cr_kappa_ratio, 1.0) ** alpha
-            * max(cr_kappa_ratio, 1.0) ** -0.544
-            * min(cystatin_c / 0.8, 1.0) ** -0.323
-            * max(cystatin_c / 0.8, 1.0) ** -0.778
-            * (0.9961**age)
-            * gender_factor
-        )
+    cr_kappa_ratio = creatinine / kappa
+    egfr = 142 * min(cr_kappa_ratio, 1.0) ** alpha * max(cr_kappa_ratio, 1.0) ** -1.2 * (0.9938**age) * gender_factor
+    return half_up(egfr, CKD_EPI_2021.digits) if rounded else egfr
 
 
-def ckd_epi_2009(creatinine: float, age: int, gender: Gender, race: EthnicalRace = EthnicalRace.OTHER) -> float:
+def ckd_epi_2021_cystatin(creatinine: float, cystatin_c: float, age: float, gender: Gender, *, rounded: bool = False) -> float:
+    """
+    Calculate eGFR using the 2021 CKD-EPI creatinine-cystatin C equation, which does not use race.
+
+    eGFR = 135 x min(Scr/k, 1)^a x max(Scr/k, 1)^-0.544 x min(Scys/0.8, 1)^-0.323 x max(Scys/0.8, 1)^-0.778
+    x 0.9961^age x (0.963 if female), with k = 0.7 (female) / 0.9 (male) and a = -0.219 (female) / -0.144 (male).
+    Derived in adults; below 18 years it raises.
+
+    References:
+        Inker LA, et al. New Creatinine- and Cystatin C-Based Equations to Estimate GFR without Race.
+        N Engl J Med. 2021;385(19):1737-1749. doi:10.1056/NEJMoa2102953
+        https://www.kidney.org/ckd-epi-creatinine-cystatin-equation-2021
+
+    Args:
+        creatinine (float): Serum creatinine in mg/dl
+        cystatin_c (float): Serum cystatin C in mg/L
+        age (float): Age in years
+        gender (Gender): Gender (Gender.MALE or Gender.FEMALE)
+        rounded (bool): Round to ``CKD_EPI_2021_CYSTATIN.digits`` places (half up)
+
+    Returns:
+        float: Estimated GFR in mL/min/1.73m²
+    """
+    _check_ckd_epi(creatinine, gender)
+    if not (cystatin_c > 0):
+        raise ValueError("Cystatin C must be positive")
+    check_age(CKD_EPI_2021_CYSTATIN, age)
+
+    if gender == Gender.FEMALE:
+        kappa, alpha, gender_factor = 0.7, -0.219, 0.963
+    else:
+        kappa, alpha, gender_factor = 0.9, -0.144, 1.0
+
+    cr_kappa_ratio = creatinine / kappa
+    egfr = (
+        135
+        * min(cr_kappa_ratio, 1.0) ** alpha
+        * max(cr_kappa_ratio, 1.0) ** -0.544
+        * min(cystatin_c / 0.8, 1.0) ** -0.323
+        * max(cystatin_c / 0.8, 1.0) ** -0.778
+        * (0.9961**age)
+        * gender_factor
+    )
+    return half_up(egfr, CKD_EPI_2021_CYSTATIN.digits) if rounded else egfr
+
+
+def ckd_epi(creatinine: float, age: float, gender: Gender, *, rounded: bool = False) -> float:
+    """
+    Calculate eGFR using the newest CKD-EPI creatinine equation — currently ``ckd_epi_2021``.
+
+    Follows the newest equation as medimetry adds it. Store ``CKD_EPI_2021.id`` (not ``"ckd_epi"``) to record
+    which equation produced a value.
+    """
+    return ckd_epi_2021(creatinine, age, gender, rounded=rounded)
+
+
+CKD_EPI_2021 = FormulaInfo(
+    id="ckd_epi_2021",
+    name="eGFR (CKD-EPI 2021)",
+    function=ckd_epi_2021,
+    unit=EGFR_UNIT,
+    inputs={"creatinine": "mg/dL"},
+    input_loinc={"creatinine": "2160-0"},
+    digits=1,
+    citation="Inker LA, et al. N Engl J Med. 2021;385(19):1737-1749. doi:10.1056/NEJMoa2102953",
+    loinc="98979-8",
+    min_age=18,
+)
+
+CKD_EPI_2021_CYSTATIN = FormulaInfo(
+    id="ckd_epi_2021_cystatin",
+    name="eGFR (CKD-EPI 2021, creatinine and cystatin C)",
+    function=ckd_epi_2021_cystatin,
+    unit=EGFR_UNIT,
+    inputs={"creatinine": "mg/dL", "cystatin_c": "mg/L"},
+    input_loinc={"creatinine": "2160-0", "cystatin_c": "33863-2"},
+    digits=1,
+    citation="Inker LA, et al. N Engl J Med. 2021;385(19):1737-1749. doi:10.1056/NEJMoa2102953",
+    min_age=18,
+)
+
+
+def ckd_epi_2009(creatinine: float, age: float, gender: Gender, race: EthnicalRace = EthnicalRace.OTHER, *, rounded: bool = False) -> float:
     """
     Calculate eGFR using the 2009 CKD-EPI creatinine equation.
 
     eGFR = 141 x min(Scr/k, 1)^a x max(Scr/k, 1)^-1.209 x 0.993^age x (1.018 if female) x (1.159 if Black)
 
     with k = 0.7 (female) / 0.9 (male) and a = -0.329 (female) / -0.411 (male). Superseded by the 2021
-    equation (``ckd_epi``), which drops the race coefficient; still reported by laboratories.
+    equation (``ckd_epi_2021``), which drops the race coefficient; still reported by laboratories. Derived in
+    adults; below 18 years it raises.
 
     References:
         Levey AS, et al. A New Equation to Estimate Glomerular Filtration Rate.
@@ -227,21 +327,16 @@ def ckd_epi_2009(creatinine: float, age: int, gender: Gender, race: EthnicalRace
         age (int): Age in years
         gender (Gender): Gender.MALE or Gender.FEMALE
         race (EthnicalRace): EthnicalRace.AFRICAN_AMERICAN applies the 1.159 factor, any other value does not
+        rounded (bool): Round to ``CKD_EPI_2009.digits`` places (half up)
 
     Returns:
         float: Estimated GFR in mL/min/1.73m²
 
-    >>> round(ckd_epi_2009(creatinine=1.5, age=70, gender=Gender.MALE), 1)
+    >>> ckd_epi_2009(creatinine=1.5, age=70, gender=Gender.MALE, rounded=True)
     46.5
     """
-    if not (creatinine > 0):
-        raise ValueError("Creatinine must be positive")
-    if not (age > 0):
-        raise ValueError("Age must be positive")
-    if not isinstance(gender, Gender):
-        raise TypeError("Gender must be Gender.MALE or Gender.FEMALE")
-    if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+    _check_ckd_epi(creatinine, gender)
+    check_age(CKD_EPI_2009, age)
 
     if gender == Gender.FEMALE:
         kappa = 0.7
@@ -258,7 +353,21 @@ def ckd_epi_2009(creatinine: float, age: int, gender: Gender, race: EthnicalRace
     if race == EthnicalRace.AFRICAN_AMERICAN:
         egfr *= 1.159
 
-    return egfr
+    return half_up(egfr, CKD_EPI_2009.digits) if rounded else egfr
+
+
+CKD_EPI_2009 = FormulaInfo(
+    id="ckd_epi_2009",
+    name="eGFR (CKD-EPI 2009)",
+    function=ckd_epi_2009,
+    unit=EGFR_UNIT,
+    inputs={"creatinine": "mg/dL"},
+    input_loinc={"creatinine": "2160-0"},
+    digits=1,
+    citation="Levey AS, et al. Ann Intern Med. 2009;150(9):604-612. doi:10.7326/0003-4819-150-9-200905050-00006",
+    loinc="62238-1",
+    min_age=18,
+)
 
 
 def _ekfc(ratio: float, age: float) -> float:
@@ -269,20 +378,34 @@ def _ekfc(ratio: float, age: float) -> float:
     return egfr
 
 
-def ekfc(creatinine: float, age: float, gender: Gender, cystatin_c: float | None = None) -> float:
+def _ekfc_q(age: float, gender: Gender) -> float:
+    """Q of the creatinine equation in µmol/l: a polynomial in age up to 25 years, 80 (men) / 62 (women) above."""
+    if age <= 25:
+        if gender == Gender.FEMALE:
+            return math.exp(3.080 + 0.177 * age - 0.223 * math.log(age) - 0.00596 * age**2 + 0.0000686 * age**3)
+        return math.exp(3.200 + 0.259 * age - 0.543 * math.log(age) - 0.00763 * age**2 + 0.0000790 * age**3)
+    return 62.0 if gender == Gender.FEMALE else 80.0
+
+
+def _check_ekfc(creatinine: float, gender: Gender, info: FormulaInfo, age: float) -> None:
+    if not (creatinine > 0):
+        raise ValueError("Creatinine must be positive")
+    if not isinstance(gender, Gender):
+        raise TypeError("Gender must be of type 'Gender'")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+    check_age(info, age)
+
+
+def ekfc(creatinine: float, age: float, gender: Gender, *, rounded: bool = False) -> float:
     """
-    Calculate eGFR using the EKFC (European Kidney Function Consortium) equation.
+    Calculate eGFR using the EKFC (European Kidney Function Consortium) creatinine equation.
 
     The equation covers the full age spectrum (from 2 years on) with one formula: serum
     creatinine is rescaled by Q, the median creatinine of healthy persons of the same age
     and sex. Q is a polynomial in age for 2-25 years, and 80 µmol/l (men) or 62 µmol/l
     (women) above 25 years. The creatinine is converted to µmol/l internally, as Q is
-    published in µmol/l.
-
-    If cystatin C is given, the result is the arithmetic mean of the creatinine-based and
-    the cystatin C-based EKFC equation, as proposed by Pottel et al. (2023). The cystatin C
-    equation uses Q = 0.83 mg/l below 50 years and 0.83 + 0.005 x (age - 50) mg/l above,
-    regardless of sex. The same Q of 0.83 mg/l is used for children (Pottel et al., 2024).
+    published in µmol/l. With cystatin C: ``ekfc_cystatin``.
 
     The equation was developed in white European populations and is not validated for
     Black patients.
@@ -292,6 +415,35 @@ def ekfc(creatinine: float, age: float, gender: Gender, cystatin_c: float | None
         Creatinine-Based Equation to Estimate Glomerular Filtration Rate.
         Ann Intern Med. 2021;174(2):183-191. doi:10.7326/M20-4366
 
+    Args:
+        creatinine (float): Serum creatinine in mg/dl
+        age (float): Age in years (fractions are significant for children)
+        gender (Gender): Gender.MALE or Gender.FEMALE
+        rounded (bool): Round to ``EKFC.digits`` places (half up)
+
+    Returns:
+        float: Estimated GFR in mL/min/1.73m²
+
+    >>> ekfc(creatinine=1.0, age=50, gender=Gender.MALE, rounded=True)
+    86.7
+    """
+    _check_ekfc(creatinine, gender, EKFC, age)
+    # Q is published in µmol/l
+    egfr = _ekfc(creatinine * 88.4 / _ekfc_q(age, gender), age)
+    return half_up(egfr, EKFC.digits) if rounded else egfr
+
+
+def ekfc_cystatin(creatinine: float, cystatin_c: float, age: float, gender: Gender, *, rounded: bool = False) -> float:
+    """
+    Calculate eGFR as the arithmetic mean of the EKFC creatinine and the EKFC cystatin C equation.
+
+    The mean is the combination proposed by Pottel et al. (2023). The cystatin C equation uses
+    Q = 0.83 mg/l below 50 years and 0.83 + 0.005 x (age - 50) mg/l above, regardless of sex;
+    the same Q of 0.83 mg/l is used for children (Pottel et al., 2024).
+
+    References:
+        Pottel H, et al. Ann Intern Med. 2021;174(2):183-191. doi:10.7326/M20-4366
+
         Pottel H, et al. Cystatin C-Based Equation to Estimate GFR without the Inclusion of
         Race and Sex. N Engl J Med. 2023;388(4):333-343. doi:10.1056/NEJMoa2203769
 
@@ -300,54 +452,47 @@ def ekfc(creatinine: float, age: float, gender: Gender, cystatin_c: float | None
 
     Args:
         creatinine (float): Serum creatinine in mg/dl
+        cystatin_c (float): Serum cystatin C in mg/l
         age (float): Age in years (fractions are significant for children)
         gender (Gender): Gender.MALE or Gender.FEMALE
-        cystatin_c (float, optional): Serum cystatin C in mg/l - if given, the mean of the
-                creatinine and the cystatin C equation is returned
+        rounded (bool): Round to ``EKFC_CYSTATIN.digits`` places (half up)
 
     Returns:
         float: Estimated GFR in mL/min/1.73m²
-
-    >>> round(ekfc(creatinine=1.0, age=50, gender=Gender.MALE), 1)
-    86.7
     """
-    if not (creatinine > 0):
-        raise ValueError("Creatinine must be positive")
-    if not isinstance(gender, Gender):
-        raise TypeError("Gender must be of type 'Gender'")
-    if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
-    if cystatin_c is not None:
-        if not (cystatin_c > 0):
-            raise ValueError("Cystatin C must be positive, if given")
-    if age < 2:
-        raise ValueError(f"EKFC is only defined from 2 years of age: {age}")
-
-    if age <= 25:
-        if gender == Gender.FEMALE:
-            q = math.exp(3.080 + 0.177 * age - 0.223 * math.log(age) - 0.00596 * age**2 + 0.0000686 * age**3)
-        else:
-            q = math.exp(3.200 + 0.259 * age - 0.543 * math.log(age) - 0.00763 * age**2 + 0.0000790 * age**3)
-    else:
-        q = 62.0 if gender == Gender.FEMALE else 80.0
-
-    # Q is published in µmol/l
-    egfr_cr = _ekfc(creatinine * 88.4 / q, age)
-    if cystatin_c is None:
-        return egfr_cr
-
+    _check_ekfc(creatinine, gender, EKFC_CYSTATIN, age)
+    if not (cystatin_c > 0):
+        raise ValueError("Cystatin C must be positive")
+    egfr_cr = _ekfc(creatinine * 88.4 / _ekfc_q(age, gender), age)
     q_cys = 0.83 if age < 50 else 0.83 + 0.005 * (age - 50)
-    return (egfr_cr + _ekfc(cystatin_c / q_cys, age)) / 2
+    egfr = (egfr_cr + _ekfc(cystatin_c / q_cys, age)) / 2
+    return half_up(egfr, EKFC_CYSTATIN.digits) if rounded else egfr
 
 
-gfr_category_titles = {
-    "G1": _("Normal"),
-    "G2": _("Mildly decreased"),
-    "G3a": _("Mildly to moderately decreased"),
-    "G3b": _("Moderately to severely decreased"),
-    "G4": _("Severely decreased"),
-    "G5": _("Kidney failure"),
-}
+EKFC = FormulaInfo(
+    id="ekfc",
+    name="eGFR (EKFC)",
+    function=ekfc,
+    unit=EGFR_UNIT,
+    inputs={"creatinine": "mg/dL"},
+    input_loinc={"creatinine": "2160-0"},
+    digits=1,
+    citation="Pottel H, et al. Ann Intern Med. 2021;174(2):183-191. doi:10.7326/M20-4366",
+    min_age=2,
+)
+
+EKFC_CYSTATIN = FormulaInfo(
+    id="ekfc_cystatin",
+    name="eGFR (EKFC, creatinine and cystatin C)",
+    function=ekfc_cystatin,
+    unit=EGFR_UNIT,
+    inputs={"creatinine": "mg/dL", "cystatin_c": "mg/L"},
+    input_loinc={"creatinine": "2160-0", "cystatin_c": "33863-2"},
+    digits=1,
+    citation="Pottel H, et al. N Engl J Med. 2023;388(4):333-343. doi:10.1056/NEJMoa2203769",
+    min_age=2,
+)
+
 
 kdigo_risk_matrix = {
     # KDIGO prognosis-of-CKD heat map: risk category (1 = low/green, 2 = moderately

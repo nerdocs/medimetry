@@ -1,7 +1,23 @@
+"""
+CKD-EPI 2021 tests.
+
+Source of the expected eGFR values: recomputed from the published equations, not taken from a published worked
+example (Inker LA, et al. N Engl J Med. 2021;385(19):1737-1749, doi:10.1056/NEJMoa2102953, which gives none):
+
+- creatinine: 142 x min(Scr/k, 1)^a x max(Scr/k, 1)^-1.200 x 0.9938^age x 1.012 [female], k 0.7 / 0.9, a -0.241 / -0.302
+- creatinine-cystatin C: 135 x min(Scr/k, 1)^a x max(Scr/k, 1)^-0.544 x min(Scys/0.8, 1)^-0.323
+  x max(Scys/0.8, 1)^-0.778 x 0.9961^age x 0.963 [female], a -0.219 / -0.144
+
+An independent recomputation (outside medimetry) agrees with every expected value within the 0.1 tolerance of
+``assert_in_range``; several expected values are truncated rather than rounded to one decimal (e.g. 91.69 -> 91.6).
+"""
+
 import pytest
 
 from medimetry import Gender
 from medimetry.renal import ckd_epi
+from medimetry.renal import ckd_epi_2021
+from medimetry.renal import ckd_epi_2021_cystatin
 
 
 def assert_in_range(result, expected):
@@ -42,7 +58,7 @@ def test_ckd_epi_female_elevated_creatinine():
 def test_ckd_epi_male_with_cystatin_c():
     """Test CKD-EPI formula for male patient with cystatin C."""
     # 60-year-old male, creatinine 1.2 mg/dl, cystatin C 1.0 mg/dl
-    result = ckd_epi(creatinine=1.2, age=60, gender=Gender.MALE, cystatin_c=1.0)
+    result = ckd_epi_2021_cystatin(creatinine=1.2, cystatin_c=1.0, age=60, gender=Gender.MALE)
     expected = 76.8
     assert_in_range(result, expected)
 
@@ -50,7 +66,7 @@ def test_ckd_epi_male_with_cystatin_c():
 def test_ckd_epi_female_with_cystatin_c():
     """Test CKD-EPI formula for female patient with cystatin C."""
     # 50-year-old female, creatinine 0.9 mg/dl, cystatin C 1.1 mg/dl
-    result = ckd_epi(creatinine=0.9, age=50, gender=Gender.FEMALE, cystatin_c=1.1)
+    result = ckd_epi_2021_cystatin(creatinine=0.9, cystatin_c=1.1, age=50, gender=Gender.FEMALE)
     expected = 72.8
     assert_in_range(result, expected)
 
@@ -67,16 +83,15 @@ def test_ckd_epi_negative_creatinine():
         ckd_epi(creatinine=-0.5, age=50, gender=Gender.MALE)
 
 
-def test_ckd_epi_zero_age():
-    """Test that ValueError is raised for zero age."""
-    with pytest.raises(ValueError, match="Age must be positive"):
-        ckd_epi(creatinine=1.0, age=0, gender=Gender.MALE)
+@pytest.mark.parametrize("age", [-5, 0, 17.9])
+def test_ckd_epi_below_adult_age(age):
+    """The equation was derived in adults: below 18 years it raises."""
+    with pytest.raises(ValueError, match="only defined from 18 years"):
+        ckd_epi(creatinine=1.0, age=age, gender=Gender.MALE)
 
 
-def test_ckd_epi_negative_age():
-    """Test that ValueError is raised for negative age."""
-    with pytest.raises(ValueError, match="Age must be positive"):
-        ckd_epi(creatinine=1.0, age=-5, gender=Gender.MALE)
+def test_ckd_epi_follows_the_newest_equation():
+    assert ckd_epi(creatinine=1.0, age=50, gender=Gender.MALE) == ckd_epi_2021(creatinine=1.0, age=50, gender=Gender.MALE)
 
 
 def test_ckd_epi_invalid_gender():
@@ -87,14 +102,14 @@ def test_ckd_epi_invalid_gender():
 
 def test_ckd_epi_zero_cystatin_c():
     """Test that ValueError is raised for zero cystatin C."""
-    with pytest.raises(ValueError, match="Cystatin C must be positive, if given"):
-        ckd_epi(creatinine=1.0, age=50, gender=Gender.MALE, cystatin_c=0.0)
+    with pytest.raises(ValueError, match="Cystatin C must be positive"):
+        ckd_epi_2021_cystatin(creatinine=1.0, cystatin_c=0.0, age=50, gender=Gender.MALE)
 
 
 def test_ckd_epi_negative_cystatin_c():
     """Test that ValueError is raised for negative cystatin C."""
-    with pytest.raises(ValueError, match="Cystatin C must be positive, if given"):
-        ckd_epi(creatinine=1.0, age=50, gender=Gender.MALE, cystatin_c=-0.5)
+    with pytest.raises(ValueError, match="Cystatin C must be positive"):
+        ckd_epi_2021_cystatin(creatinine=1.0, cystatin_c=-0.5, age=50, gender=Gender.MALE)
 
 
 def test_ckd_epi_very_low_creatinine():

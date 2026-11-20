@@ -1,6 +1,8 @@
 from enum import Enum
 
 from medimetry import Gender
+from medimetry._formula import FormulaInfo
+from medimetry._formula import half_up
 
 
 class FraminghamRiskLevel(Enum):
@@ -11,15 +13,16 @@ class FraminghamRiskLevel(Enum):
     HIGH = "high"
 
 
-def mean_arterial_pressure(systolic: int, diastolic: int) -> float:
+def mean_arterial_pressure(systolic: float, diastolic: float, *, rounded: bool = False) -> float:
     """
     Calculate mean arterial pressure (MAP) from systolic and diastolic blood pressure.
 
     MAP = (2 x diastolic + systolic) / 3
 
     Args:
-        systolic (int): Systolic blood pressure in mm Hg
-        diastolic (int): Diastolic blood pressure in mm Hg
+        systolic (float): Systolic blood pressure in mm Hg
+        diastolic (float): Diastolic blood pressure in mm Hg
+        rounded (bool): Round to ``MEAN_ARTERIAL_PRESSURE.digits`` places (half up)
 
     Returns:
         float: Mean arterial pressure in mm Hg
@@ -34,7 +37,20 @@ def mean_arterial_pressure(systolic: int, diastolic: int) -> float:
     if diastolic >= systolic:
         raise ValueError("Diastolic pressure must be lower than systolic pressure")
 
-    return round((2 * diastolic + systolic) / 3, 1)
+    value = (2 * diastolic + systolic) / 3
+    return half_up(value, MEAN_ARTERIAL_PRESSURE.digits) if rounded else value
+
+
+MEAN_ARTERIAL_PRESSURE = FormulaInfo(
+    id="mean_arterial_pressure",
+    name="Mean arterial pressure",
+    function=mean_arterial_pressure,
+    unit="mm[Hg]",
+    inputs={"systolic": "mm[Hg]", "diastolic": "mm[Hg]"},
+    digits=1,
+    citation="Standard approximation (2 x diastolic + systolic) / 3; no single primary source",
+    loinc="8478-0",
+)
 
 
 def chads_vasc_score(
@@ -101,7 +117,7 @@ def chads_vasc_score(
     return score
 
 
-def framingham_risk_score(
+def framingham_score(
     age: int,
     gender: Gender,
     total_cholesterol: float,
@@ -110,22 +126,18 @@ def framingham_risk_score(
     bp_treatment: bool = False,
     smoking: bool = False,
     diabetes: bool = False,
-) -> tuple[int, float, FraminghamRiskLevel]:
+) -> int:
     """
-    Calculate the Framingham General Cardiovascular Disease Risk Score (10-year risk).
+    Calculate the Framingham General Cardiovascular Disease points (10-year risk profile, lipid version).
 
     This is the sex-specific points system of the 2008 Framingham General CVD risk
-    profile (lipid version), not the older ATP III hard-CHD score.
+    profile, not the older ATP III hard-CHD score. The points are converted to a 10-year
+    risk with ``framingham_risk``; the risk level is a separate step (``framingham_category``).
 
     References:
         D'Agostino RB Sr, et al. General cardiovascular risk profile for use in primary care:
         the Framingham Heart Study. Circulation. 2008;117(6):743-753.
-        doi:10.1161/CIRCULATIONAHA.107.699579
-
-        Risk level (not part of D'Agostino 2008; guideline convention):
-        Anderson TJ, et al. 2016 Canadian Cardiovascular Society Guidelines for the Management
-        of Dyslipidemia for the Prevention of Cardiovascular Disease in the Adult.
-        Can J Cardiol. 2016;32(11):1263-1282. doi:10.1016/j.cjca.2016.07.510
+        doi:10.1161/CIRCULATIONAHA.107.699579 (CVD points: Table 5 women, Table 7 men)
 
     Args:
         age (int): Age in years (30-79)
@@ -138,11 +150,13 @@ def framingham_risk_score(
         diabetes (bool): Presence of diabetes mellitus
 
     Returns:
-        tuple[int, float, FraminghamRiskLevel]: Points, 10-year risk percentage, risk level.
-            The percentage 0.999 stands for "< 1 %", 30.0 for "> 30 %" (table limits).
+        int: Sum of the CVD points (not capped to the range of the risk table)
 
     Raises:
         ValueError: If parameters are out of valid ranges
+
+    >>> framingham_score(age=61, gender=Gender.FEMALE, total_cholesterol=4.66, hdl_cholesterol=1.22, systolic_bp=124, smoking=True)
+    13
     """
     if gender not in (Gender.MALE, Gender.FEMALE):
         raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
@@ -270,7 +284,40 @@ def framingham_risk_score(
     if diabetes:
         points += 3 if gender == Gender.MALE else 4
 
-    # Calculate 10-year risk percentage
+    return points
+
+
+def framingham_risk(points: int, gender: Gender) -> float:
+    """
+    Convert Framingham General CVD points into the published 10-year CVD risk in percent.
+
+    The tables are open-ended: 0.999 stands for "< 1 %" (men <= -3, women <= -2 points),
+    30.0 for "> 30 %" (men >= 18, women >= 21 points).
+
+    References:
+        D'Agostino RB Sr, et al. General cardiovascular risk profile for use in primary care:
+        the Framingham Heart Study. Circulation. 2008;117(6):743-753.
+        doi:10.1161/CIRCULATIONAHA.107.699579 (10-year CVD risk: Table 6 women, Table 8 men)
+
+    Args:
+        points (int): CVD points, e.g. from ``framingham_score``
+        gender (Gender): Gender (Gender.MALE or Gender.FEMALE)
+
+    Returns:
+        float: 10-year CVD risk in percent, as tabulated
+
+    Raises:
+        TypeError: If points is not an int
+        ValueError: If gender is not Gender.MALE or Gender.FEMALE
+
+    >>> framingham_risk(13, Gender.FEMALE)
+    10.0
+    """
+    if not isinstance(points, int) or isinstance(points, bool):
+        raise TypeError("Framingham points must be an int")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+
     # hint: 0.999 means "<1", 30 means ">30"
     if gender == Gender.MALE:
         risk_table = {
@@ -329,16 +376,37 @@ def framingham_risk_score(
             21: 30,  # >30
         }
 
-    # Get risk percentage (cap at table limits)
     risk_points = min(max(points, min(risk_table.keys())), max(risk_table.keys()))
-    risk_percentage = risk_table.get(risk_points)
+    return float(risk_table[risk_points])
 
-    # Determine risk level
+
+def framingham_category(risk_percentage: float) -> FraminghamRiskLevel:
+    """
+    Return the risk level of a Framingham 10-year CVD risk: low < 10 %, intermediate 10-19.9 %, high >= 20 %.
+
+    The levels are not part of D'Agostino 2008; they are a guideline convention.
+
+    References:
+        Anderson TJ, et al. 2016 Canadian Cardiovascular Society Guidelines for the Management
+        of Dyslipidemia for the Prevention of Cardiovascular Disease in the Adult.
+        Can J Cardiol. 2016;32(11):1263-1282. doi:10.1016/j.cjca.2016.07.510
+
+    Args:
+        risk_percentage (float): 10-year CVD risk in percent, e.g. from ``framingham_risk``
+
+    Returns:
+        FraminghamRiskLevel: Risk level
+
+    Raises:
+        ValueError: If risk_percentage is outside 0-100
+
+    >>> framingham_category(10.0)
+    <FraminghamRiskLevel.INTERMEDIATE: 'intermediate'>
+    """
+    if not 0 <= risk_percentage <= 100:
+        raise ValueError("Risk percentage must be between 0 and 100")
     if risk_percentage < 10:
-        risk_level = FraminghamRiskLevel.LOW
-    elif risk_percentage < 20:
-        risk_level = FraminghamRiskLevel.INTERMEDIATE
-    else:
-        risk_level = FraminghamRiskLevel.HIGH
-
-    return points, float(risk_percentage), risk_level
+        return FraminghamRiskLevel.LOW
+    if risk_percentage < 20:
+        return FraminghamRiskLevel.INTERMEDIATE
+    return FraminghamRiskLevel.HIGH
