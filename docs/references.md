@@ -27,6 +27,18 @@ Verification levels:
 - Creatinine is converted to µmol/l (× 88.4) because Q is published in µmol/l. Calculators using the rounded mg/dl
   values (0.90 / 0.70) differ by about 0.5 %.
 
+## Laboratory (`laboratory.py`)
+
+### `zlog`
+
+- Hoffmann G, et al. LaboratoriumsMedizin. 2017;41(1):23-32. doi:10.1515/labmed-2016-0087 (**secondary**). The
+  full text was not accessible; the formula was checked against the R package `zlog` (CRAN, `z()`/`zlog()`) and the
+  KBV MIO *Laborbefund* page "zlog-Wert", and the results against Cadamuro J, et al. Crit Rev Clin Lab Sci. 2021,
+  Figure 6, which plots zlog values for a blood count.
+- One-sided intervals: no zlog. The R package's `set_missing_limits()` substitutes LL = 0.15 × UL after Haeckel
+  2015; Hoffmann (KBV MIO comment, July 2022) calls zlog not computable without a real lower limit. The library
+  follows Hoffmann and rejects a lower limit of 0.
+
 ## Cardiovascular (`cardiovasc.py`)
 
 ### `framingham_risk_score`

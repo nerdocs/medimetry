@@ -4,6 +4,10 @@
 uses semantic versioning
 
 
+## [Unreleased]
+
+* Add laboratory.zlog: zlog value of a result against a two-sided reference interval (Hoffmann 2017)
+
 ## [0.3.0] - 2026-11-19
 
 * Add ckd_epi_2009: CKD-EPI 2009 creatinine equation (Levey 2009); ckd_epi stays the 2021 equation

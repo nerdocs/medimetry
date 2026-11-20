@@ -64,6 +64,7 @@ See [Contributing](CONTRIBUTING.md).
 |                                                     | ✅ | MDRD GFR Equation                             |
 |                                                     | ✅ | CKD Staging                                   |
 |                                                     |   | Fractional Excretion of Sodium (FENa)         |
+| Laboratory (**laboratory**)                         | ✅ | zlog Value                                    |
 | Electrolytes (**lytes**)                            |   | Sodium Correction for Hyperglycemia           |
 |                                                     |   | Serum Osmolality/Osmolarity                   |
 |                                                     | ✅ | Calcium Correction for Hypo-/Hyperalbuminemia |
