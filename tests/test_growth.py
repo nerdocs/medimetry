@@ -97,11 +97,11 @@ def test_key_argument_validation():
 
 
 def test_type_validation():
-    with pytest.raises(AssertionError, match="Gender"):
+    with pytest.raises(ValueError, match="Gender"):
         growth_zscore(GrowthIndicator.WEIGHT_FOR_AGE, Gender.DIVERSE, value=10, age_days=100)
-    with pytest.raises(AssertionError, match="GrowthIndicator"):
+    with pytest.raises(TypeError, match="GrowthIndicator"):
         growth_zscore("wfa", Gender.MALE, value=10, age_days=100)
-    with pytest.raises(AssertionError, match="GrowthReference"):
+    with pytest.raises(TypeError, match="GrowthReference"):
         growth_zscore(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, value=10, age_days=100, reference="who")
 
 
@@ -149,7 +149,7 @@ def test_write_canonical_table(tmp_path):
     path = tmp_path / "t.csv"
     write_canonical_table(path, [(2.0, 1, 2, 3), (1.0, 4, 5, 6)])
     assert path.read_text().splitlines() == ["key;L;M;S", "1.0;4.0;5.0;6.0", "2.0;1.0;2.0;3.0"]
-    with pytest.raises(AssertionError, match="Duplicate key"):
+    with pytest.raises(ValueError, match="Duplicate key"):
         write_canonical_table(path, [(1.0, 1, 2, 3), (1.0, 4, 5, 6)])
 
 
@@ -255,7 +255,7 @@ def test_curves_validation():
         growth_curves(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, step=0)
     with pytest.raises(ValueError, match="Empty range"):
         growth_curves(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, age_unit=AgeUnit.YEARS, start=25, end=30)
-    with pytest.raises(AssertionError, match="AgeUnit"):
+    with pytest.raises(TypeError, match="AgeUnit"):
         growth_curves(GrowthIndicator.WEIGHT_FOR_AGE, Gender.MALE, age_unit="months")
 
 

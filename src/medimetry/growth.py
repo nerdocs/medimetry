@@ -124,7 +124,8 @@ def write_canonical_table(path: Path, rows: Iterable[tuple[float, float, float, 
     """
     sorted_rows = sorted(rows, key=lambda r: r[0])
     for previous, current in pairwise(sorted_rows):
-        assert previous[0] < current[0], f"Duplicate key {current[0]} in {path}"
+        if not (previous[0] < current[0]):
+            raise ValueError(f"Duplicate key {current[0]} in {path}")
     with path.open("w", newline="") as f:
         writer = csv.writer(f, delimiter=";", lineterminator="\n")
         writer.writerow(_CANONICAL_HEADER)
@@ -135,7 +136,8 @@ def write_canonical_table(path: Path, rows: Iterable[tuple[float, float, float, 
 def _parse_table(text: str) -> tuple[list[float], list[tuple[float, float, float]]]:
     reader = csv.reader(text.splitlines(), delimiter=";")
     header = next(reader)
-    assert header == _CANONICAL_HEADER, f"Unexpected header {header}"
+    if header != _CANONICAL_HEADER:
+        raise ValueError(f"Unexpected header {header}")
     keys: list[float] = []
     lms: list[tuple[float, float, float]] = []
     for row in reader:
@@ -190,9 +192,12 @@ def _lms_value(z: float, l: float, m: float, s: float) -> float:  # noqa: E741
 
 
 def _validate(indicator: GrowthIndicator, gender: Gender, reference: GrowthReference) -> None:
-    assert isinstance(indicator, GrowthIndicator), "indicator must be a GrowthIndicator"
-    assert isinstance(reference, GrowthReference), "reference must be a GrowthReference"
-    assert gender in (Gender.MALE, Gender.FEMALE), "Gender must be Gender.MALE or Gender.FEMALE"
+    if not isinstance(indicator, GrowthIndicator):
+        raise TypeError("indicator must be a GrowthIndicator")
+    if not isinstance(reference, GrowthReference):
+        raise TypeError("reference must be a GrowthReference")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
 
 
 def _key(indicator: GrowthIndicator, age_days: float | None, length_cm: float | None) -> float:
@@ -390,7 +395,8 @@ def growth_curves(
     [12.1, 13.9, 15.8]
     """
     _validate(indicator, gender, reference)
-    assert isinstance(age_unit, AgeUnit), "age_unit must be an AgeUnit"
+    if not isinstance(age_unit, AgeUnit):
+        raise TypeError("age_unit must be an AgeUnit")
     if step is not None and step <= 0:
         raise ValueError("step must be positive")
     percentiles = [float(p) for p in percentiles]

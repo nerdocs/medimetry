@@ -52,25 +52,25 @@ def test_mdrd_african_american_female():
 
 def test_mdrd_zero_creatinine():
     """Test MDRD formula with zero creatinine."""
-    with pytest.raises(AssertionError, match="Creatinine must be positive"):
+    with pytest.raises(ValueError, match="Creatinine must be positive"):
         mdrd(creatinine=0.0, age=50, gender=Gender.MALE)
 
 
 def test_mdrd_negative_creatinine():
     """Test MDRD formula with negative creatinine."""
-    with pytest.raises(AssertionError, match="Creatinine must be positive"):
+    with pytest.raises(ValueError, match="Creatinine must be positive"):
         mdrd(creatinine=-0.5, age=50, gender=Gender.MALE)
 
 
 def test_mdrd_zero_age():
     """Test MDRD formula with zero age."""
-    with pytest.raises(AssertionError, match="Age must be positive"):
+    with pytest.raises(ValueError, match="Age must be positive"):
         mdrd(creatinine=1.0, age=0, gender=Gender.MALE)
 
 
 def test_mdrd_negative_age():
     """Test MDRD formula with negative age."""
-    with pytest.raises(AssertionError, match="Age must be positive"):
+    with pytest.raises(ValueError, match="Age must be positive"):
         mdrd(creatinine=1.0, age=-5, gender=Gender.MALE)
 
 

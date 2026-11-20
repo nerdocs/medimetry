@@ -7,6 +7,9 @@ uses semantic versioning
 ## [Unreleased]
 
 * Add laboratory.zlog: zlog value of a result against a two-sided reference interval (Hoffmann 2017)
+* Input checks raise ValueError/TypeError instead of assert (asserts vanished under python -O)
+* Drop the unused labunits dependency; ship py.typed; run the docstring doctests in the test suite
+* Remove the cookiecutter bootstrap (ci/bootstrap.py, tox env bootstrap, jinja2 dev dependency)
 
 ## [0.3.0] - 2026-11-19
 

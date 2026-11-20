@@ -56,44 +56,44 @@ def test_ckd_epi_female_with_cystatin_c():
 
 
 def test_ckd_epi_zero_creatinine():
-    """Test that AssertionError is raised for zero creatinine."""
-    with pytest.raises(AssertionError, match="Creatinine must be positive"):
+    """Test that ValueError is raised for zero creatinine."""
+    with pytest.raises(ValueError, match="Creatinine must be positive"):
         ckd_epi(creatinine=0.0, age=50, gender=Gender.MALE)
 
 
 def test_ckd_epi_negative_creatinine():
-    """Test that AssertionError is raised for negative creatinine."""
-    with pytest.raises(AssertionError, match="Creatinine must be positive"):
+    """Test that ValueError is raised for negative creatinine."""
+    with pytest.raises(ValueError, match="Creatinine must be positive"):
         ckd_epi(creatinine=-0.5, age=50, gender=Gender.MALE)
 
 
 def test_ckd_epi_zero_age():
-    """Test that AssertionError is raised for zero age."""
-    with pytest.raises(AssertionError, match="Age must be positive"):
+    """Test that ValueError is raised for zero age."""
+    with pytest.raises(ValueError, match="Age must be positive"):
         ckd_epi(creatinine=1.0, age=0, gender=Gender.MALE)
 
 
 def test_ckd_epi_negative_age():
-    """Test that AssertionError is raised for negative age."""
-    with pytest.raises(AssertionError, match="Age must be positive"):
+    """Test that ValueError is raised for negative age."""
+    with pytest.raises(ValueError, match="Age must be positive"):
         ckd_epi(creatinine=1.0, age=-5, gender=Gender.MALE)
 
 
 def test_ckd_epi_invalid_gender():
-    """Test that AssertionError is raised for invalid gender."""
+    """Test that TypeError is raised for invalid gender."""
     with pytest.raises(TypeError, match="Gender must be of type 'Gender'"):
         ckd_epi(creatinine=1.0, age=50, gender="invalid")
 
 
 def test_ckd_epi_zero_cystatin_c():
-    """Test that AssertionError is raised for zero cystatin C."""
-    with pytest.raises(AssertionError, match="Cystatin C must be positive, if given"):
+    """Test that ValueError is raised for zero cystatin C."""
+    with pytest.raises(ValueError, match="Cystatin C must be positive, if given"):
         ckd_epi(creatinine=1.0, age=50, gender=Gender.MALE, cystatin_c=0.0)
 
 
 def test_ckd_epi_negative_cystatin_c():
-    """Test that AssertionError is raised for negative cystatin C."""
-    with pytest.raises(AssertionError, match="Cystatin C must be positive, if given"):
+    """Test that ValueError is raised for negative cystatin C."""
+    with pytest.raises(ValueError, match="Cystatin C must be positive, if given"):
         ckd_epi(creatinine=1.0, age=50, gender=Gender.MALE, cystatin_c=-0.5)
 
 

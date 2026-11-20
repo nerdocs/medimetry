@@ -62,5 +62,5 @@ def test_chads_vasc_score_invalid_age():
 
 def test_chads_vasc_score_invalid_gender():
     """Test CHA2DS2-VASc score with invalid gender."""
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         chads_vasc_score(age=50, gender="invalid")

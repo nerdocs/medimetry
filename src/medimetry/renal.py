@@ -27,8 +27,10 @@ def acr(urine_albumin: float, urine_creatinine: float) -> float:
     >>> acr(30, 100)
     300.0
     """
-    assert urine_albumin >= 0, "Urine albumin must not be negative"
-    assert urine_creatinine > 0, "Urine creatinine must be positive"
+    if not (urine_albumin >= 0):
+        raise ValueError("Urine albumin must not be negative")
+    if not (urine_creatinine > 0):
+        raise ValueError("Urine creatinine must be positive")
 
     return urine_albumin / urine_creatinine * 1000
 
@@ -58,10 +60,14 @@ def cockcroft_gault(
     Returns:
         float: Creatinine clearance in mL/min, rounded to 1 decimal place
     """
-    assert weight > 0, "Weight must be positive"
-    assert age > 0, "Age must be positive"
-    assert creatinine >= 0, "Creatinine must not be negative"
-    assert gender in (Gender.MALE, Gender.FEMALE), "Gender must be Gender.MALE or Gender.FEMALE"
+    if not (weight > 0):
+        raise ValueError("Weight must be positive")
+    if not (age > 0):
+        raise ValueError("Age must be positive")
+    if not (creatinine >= 0):
+        raise ValueError("Creatinine must not be negative")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
 
     if weight > 300:
         raise ValueError("Weight must be lower than 300 kilograms")
@@ -99,8 +105,10 @@ def mdrd(creatinine: float, age: int, gender: Gender, race: EthnicalRace = Ethni
     Returns:
         float: Estimated GFR in mL/min/1.73m²
     """
-    assert creatinine > 0, "Creatinine must be positive"
-    assert age > 0, "Age must be positive"
+    if not (creatinine > 0):
+        raise ValueError("Creatinine must be positive")
+    if not (age > 0):
+        raise ValueError("Age must be positive")
     if not isinstance(gender, Gender):
         raise TypeError("Gender must be Gender.MALE or Gender.FEMALE")
     if gender not in (Gender.MALE, Gender.FEMALE):
@@ -146,14 +154,17 @@ def ckd_epi(creatinine: float, age: int, gender: Gender, cystatin_c: float | Non
     Returns:
         float: Estimated GFR in mL/min/1.73m²
     """
-    assert creatinine > 0, "Creatinine must be positive"
-    assert age > 0, "Age must be positive"
+    if not (creatinine > 0):
+        raise ValueError("Creatinine must be positive")
+    if not (age > 0):
+        raise ValueError("Age must be positive")
     if not isinstance(gender, Gender):
         raise TypeError("Gender must be of type 'Gender'")
     if gender not in (Gender.MALE, Gender.FEMALE):
         raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
     if cystatin_c is not None:
-        assert cystatin_c > 0, "Cystatin C must be positive, if given"
+        if not (cystatin_c > 0):
+            raise ValueError("Cystatin C must be positive, if given")
 
     if cystatin_c is None:
         # Formula WITHOUT Cystatin C
@@ -223,8 +234,10 @@ def ckd_epi_2009(creatinine: float, age: int, gender: Gender, race: EthnicalRace
     >>> round(ckd_epi_2009(creatinine=1.5, age=70, gender=Gender.MALE), 1)
     46.5
     """
-    assert creatinine > 0, "Creatinine must be positive"
-    assert age > 0, "Age must be positive"
+    if not (creatinine > 0):
+        raise ValueError("Creatinine must be positive")
+    if not (age > 0):
+        raise ValueError("Age must be positive")
     if not isinstance(gender, Gender):
         raise TypeError("Gender must be Gender.MALE or Gender.FEMALE")
     if gender not in (Gender.MALE, Gender.FEMALE):
@@ -298,13 +311,15 @@ def ekfc(creatinine: float, age: float, gender: Gender, cystatin_c: float | None
     >>> round(ekfc(creatinine=1.0, age=50, gender=Gender.MALE), 1)
     86.7
     """
-    assert creatinine > 0, "Creatinine must be positive"
+    if not (creatinine > 0):
+        raise ValueError("Creatinine must be positive")
     if not isinstance(gender, Gender):
         raise TypeError("Gender must be of type 'Gender'")
     if gender not in (Gender.MALE, Gender.FEMALE):
         raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
     if cystatin_c is not None:
-        assert cystatin_c > 0, "Cystatin C must be positive, if given"
+        if not (cystatin_c > 0):
+            raise ValueError("Cystatin C must be positive, if given")
     if age < 2:
         raise ValueError(f"EKFC is only defined from 2 years of age: {age}")
 

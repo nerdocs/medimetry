@@ -51,13 +51,13 @@ def test_cockcroft_gault_high_creatinine():
 
 def test_cockcroft_gault_zero_weight():
     """Test Cockcroft-Gault formula with zero weight."""
-    with pytest.raises(AssertionError, match="Weight must be positive"):
+    with pytest.raises(ValueError, match="Weight must be positive"):
         cockcroft_gault(age=50, weight=0, creatinine=1.0, gender=Gender.MALE)
 
 
 def test_cockcroft_gault_negative_weight():
     """Test Cockcroft-Gault formula with negative weight."""
-    with pytest.raises(AssertionError, match="Weight must be positive"):
+    with pytest.raises(ValueError, match="Weight must be positive"):
         cockcroft_gault(age=50, weight=-10, creatinine=1.0, gender=Gender.MALE)
 
 
@@ -69,19 +69,19 @@ def test_cockcroft_gault_excessive_weight():
 
 def test_cockcroft_gault_zero_age():
     """Test Cockcroft-Gault formula with zero age."""
-    with pytest.raises(AssertionError, match="Age must be positive"):
+    with pytest.raises(ValueError, match="Age must be positive"):
         cockcroft_gault(age=0, weight=70, creatinine=1.0, gender=Gender.MALE)
 
 
 def test_cockcroft_gault_negative_age():
     """Test Cockcroft-Gault formula with negative age."""
-    with pytest.raises(AssertionError, match="Age must be positive"):
+    with pytest.raises(ValueError, match="Age must be positive"):
         cockcroft_gault(age=-5, weight=70, creatinine=1.0, gender=Gender.MALE)
 
 
 def test_cockcroft_gault_negative_creatinine():
     """Test Cockcroft-Gault formula with negative creatinine."""
-    with pytest.raises(AssertionError, match="Creatinine must not be negative"):
+    with pytest.raises(ValueError, match="Creatinine must not be negative"):
         cockcroft_gault(age=50, weight=70, creatinine=-0.5, gender=Gender.MALE)
 
 
@@ -95,9 +95,9 @@ def test_cockcroft_gault_zero_creatinine():
 
 def test_cockcroft_gault_invalid_gender():
     """Test Cockcroft-Gault formula with invalid gender."""
-    with pytest.raises(AssertionError, match="Gender must be Gender"):
+    with pytest.raises(ValueError, match="Gender must be Gender"):
         cockcroft_gault(age=50, weight=70, creatinine=1.0, gender="invalid")
-    with pytest.raises(AssertionError, match="Gender must be Gender"):
+    with pytest.raises(ValueError, match="Gender must be Gender"):
         cockcroft_gault(age=50, weight=70, creatinine=1.0, gender=2)
 
 

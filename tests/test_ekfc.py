@@ -61,12 +61,12 @@ def test_ekfc_under_2_years():
 
 
 def test_ekfc_zero_creatinine():
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ekfc(creatinine=0.0, age=50, gender=Gender.MALE)
 
 
 def test_ekfc_zero_cystatin_c():
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ekfc(creatinine=1.0, age=50, gender=Gender.MALE, cystatin_c=0.0)
 
 

@@ -27,6 +27,12 @@ Verification levels:
 - Creatinine is converted to µmol/l (× 88.4) because Q is published in µmol/l. Calculators using the rounded mg/dl
   values (0.90 / 0.70) differ by about 0.5 %.
 
+### `ckd_epi_2009`
+
+- Levey AS, et al. Ann Intern Med. 2009;150(9):604-612. doi:10.7326/0003-4819-150-9-200905050-00006 (**secondary**).
+  The tests check the single formula against the sex- and creatinine-specific forms of Table 2 (144 / 141, 166 / 163
+  for Black patients); the full text was not re-checked when this entry was written.
+
 ## Laboratory (`laboratory.py`)
 
 ### `zlog`

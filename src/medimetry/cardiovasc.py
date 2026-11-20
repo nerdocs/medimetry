@@ -69,10 +69,8 @@ def chads_vasc_score(
     """
     if age <= 0:
         raise ValueError("Age must be positive")
-    assert gender in (
-        Gender.MALE,
-        Gender.FEMALE,
-    ), "Gender must be Gender.MALE or Gender.FEMALE"
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
 
     score = 0
 
@@ -146,7 +144,8 @@ def framingham_risk_score(
     Raises:
         ValueError: If parameters are out of valid ranges
     """
-    assert gender in (Gender.MALE, Gender.FEMALE), "Gender must be Gender.MALE or Gender.FEMALE"
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
     if not 30 <= age <= 79:
         raise ValueError("Age must be between 30 and 79 years")
     if total_cholesterol < 0:
