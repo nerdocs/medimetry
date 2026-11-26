@@ -6,6 +6,8 @@ uses semantic versioning
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-26
+
 * Add kfre_2_year / kfre_5_year: 4-variable Kidney Failure Risk Equation (Tangri 2016), calibration per KfreRegion
 * Error messages of the input checks name the offending value (`Age must be positive: -3`)
 
