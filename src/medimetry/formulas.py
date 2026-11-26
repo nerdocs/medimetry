@@ -28,6 +28,8 @@ from medimetry.renal import CKD_EPI_2021_CYSTATIN
 from medimetry.renal import COCKCROFT_GAULT
 from medimetry.renal import EKFC
 from medimetry.renal import EKFC_CYSTATIN
+from medimetry.renal import KFRE_2_YEAR
+from medimetry.renal import KFRE_5_YEAR
 from medimetry.renal import MDRD
 
 __all__ = ["FORMULAS", "FormulaInfo", "formula"]
@@ -43,6 +45,8 @@ FORMULAS: dict[str, FormulaInfo] = {
         CKD_EPI_2009,
         EKFC,
         EKFC_CYSTATIN,
+        KFRE_2_YEAR,
+        KFRE_5_YEAR,
         BMI,
         BSA_DUBOIS,
         BSA_MOSTELLER,

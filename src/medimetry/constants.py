@@ -18,3 +18,10 @@ class QtcCorrectionType(Enum):
     FRIDERICIA = "fridericia"
     FRAMINGHAM = "framingham"
     HODGES = "hodges"
+
+
+class KfreRegion(Enum):
+    """Calibration of the Kidney Failure Risk Equation (Tangri 2016): the baseline survival differs by region."""
+
+    NORTH_AMERICA = "north_america"
+    NON_NORTH_AMERICA = "non_north_america"

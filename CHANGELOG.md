@@ -6,6 +6,8 @@ uses semantic versioning
 
 ## [Unreleased]
 
+* Add kfre_2_year / kfre_5_year: 4-variable Kidney Failure Risk Equation (Tangri 2016), calibration per KfreRegion
+
 ## [0.3.0] - 2026-11-20
 
 * Add laboratory.zlog: zlog value of a result against a two-sided reference interval (Hoffmann 2017)

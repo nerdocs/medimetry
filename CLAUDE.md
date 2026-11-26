@@ -53,7 +53,7 @@ CDC 2000 growth tables are regenerated via `python scripts/update_cdc_tables.py`
 
 Flat domain-module layout — there is no class hierarchy, no plugin system, no registry. Each module under `src/medimetry/` exposes free functions for one clinical domain:
 
-- `renal.py` — ACR (mg/g), Cockcroft-Gault, MDRD, CKD-EPI (2021, with/without cystatin C; 2009 as `ckd_epi_2009`), EKFC, KDIGO staging (`ckd_stage` returns `(GFR category, albuminuria category, KDIGO risk category 1-4)` using `kdigo_risk_matrix`)
+- `renal.py` — ACR (mg/g), Cockcroft-Gault, MDRD, CKD-EPI (2021, with/without cystatin C; 2009 as `ckd_epi_2009`), EKFC, 4-variable KFRE (`kfre_2_year` / `kfre_5_year`, calibration via `KfreRegion`, no default region), KDIGO staging (`ckd_stage` returns `(GFR category, albuminuria category, KDIGO risk category 1-4)` using `kdigo_risk_matrix`)
 - `cardiovasc.py` — MAP, CHA₂DS₂-VASc, Framingham General CVD 2008
 - `anthropometric.py` — BMI, BSA (multiple formulas via `BSAFormula` enum)
 - `growth.py` — pediatric growth charts: LMS z-score/percentile, `GrowthReference.CDC | WHO`, `GrowthIndicator`, `download_who_tables()`; see `docs/growth.md`
@@ -65,7 +65,7 @@ Flat domain-module layout — there is no class hierarchy, no plugin system, no 
 - `laboratory.py` — zlog value of a result against its reference interval
 - `formulas.py` — registry of every numeric formula (`FORMULAS`, `formula(id)`); `_formula.py` holds `FormulaInfo` and `half_up`
 - `converters.py` — date-of-birth → age helpers (`dob2age`, `dob2age_tuple`)
-- `constants.py` — shared enums (`Gender`, `EthnicalRace`, `QtcCorrectionType`). Re-exported from package root (`from medimetry import Gender`).
+- `constants.py` — shared enums (`Gender`, `EthnicalRace`, `QtcCorrectionType`, `KfreRegion`). Re-exported from package root (`from medimetry import Gender`).
 
 Cross-cutting conventions:
 
