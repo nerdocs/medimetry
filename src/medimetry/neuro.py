@@ -75,11 +75,11 @@ def gcs_score(
     12
     """
     if not isinstance(eye_response, EyeResponse):
-        raise ValueError("Eye response must be an EyeResponse enum")
+        raise ValueError(f"Eye response must be an EyeResponse enum: {eye_response!r}")
     if not isinstance(verbal_response, VerbalResponse):
-        raise ValueError("Verbal response must be a VerbalResponse enum")
+        raise ValueError(f"Verbal response must be a VerbalResponse enum: {verbal_response!r}")
     if not isinstance(motor_response, MotorResponse):
-        raise ValueError("Motor response must be a MotorResponse enum")
+        raise ValueError(f"Motor response must be a MotorResponse enum: {motor_response!r}")
     if (
         eye_response == EyeResponse.NOT_TESTABLE
         or verbal_response == VerbalResponse.NOT_TESTABLE
@@ -112,11 +112,11 @@ def gcs_from_scores(eye: int, verbal: int, motor: int) -> int:
     15
     """
     if not (1 <= eye <= 4):
-        raise ValueError("Eye response must be between 1 and 4")
+        raise ValueError(f"Eye response must be between 1 and 4: {eye}")
     if not (1 <= verbal <= 5):
-        raise ValueError("Verbal response must be between 1 and 5")
+        raise ValueError(f"Verbal response must be between 1 and 5: {verbal}")
     if not (1 <= motor <= 6):
-        raise ValueError("Motor response must be between 1 and 6")
+        raise ValueError(f"Motor response must be between 1 and 6: {motor}")
 
     return gcs_score(EyeResponse(eye), VerbalResponse(verbal), MotorResponse(motor))
 
@@ -145,9 +145,9 @@ def gcs_category(score: int) -> GCSCategory:
     <GCSCategory.MODERATE: 'moderate'>
     """
     if not isinstance(score, int) or isinstance(score, bool):
-        raise TypeError("GCS score must be an int")
+        raise TypeError(f"GCS score must be an int: {score!r}")
     if not 3 <= score <= 15:
-        raise ValueError("GCS score must be between 3 and 15")
+        raise ValueError(f"GCS score must be between 3 and 15: {score}")
     if score <= 8:
         return GCSCategory.SEVERE
     if score <= 12:

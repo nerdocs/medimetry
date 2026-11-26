@@ -38,11 +38,11 @@ def qtc_correction(
         ValueError: If formula is not supported
     """
     if qt_interval <= 0:
-        raise ValueError("QT interval must be positive")
+        raise ValueError(f"QT interval must be positive: {qt_interval}")
     if heart_rate <= 0:
-        raise ValueError("Heart rate must be positive")
+        raise ValueError(f"Heart rate must be positive: {heart_rate}")
     if heart_rate > 300:
-        raise ValueError("Heart rate must be ≤ 300 bpm")
+        raise ValueError(f"Heart rate must be ≤ 300 bpm: {heart_rate}")
 
     # Convert heart rate to RR interval in seconds
     rr_interval = 60.0 / heart_rate

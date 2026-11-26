@@ -99,3 +99,12 @@ def test_kfre_registry():
     assert formula("kfre_5_year").loinc == "85625-2"
     assert formula("kfre_5_year").unit == "%"
     assert formula("kfre_2_year").min_age == 18
+
+
+@pytest.mark.parametrize(
+    ("arguments", "message"), [({"egfr": 75}, ": 75"), ({"acr": -1}, "ACR must be positive: -1"), ({"age": 0}, "Age must be positive: 0")]
+)
+def test_kfre_error_names_the_value(arguments, message):
+    valid = {"egfr": 30, "acr": 300, "age": 65, "gender": Gender.MALE, "region": NON_NA}
+    with pytest.raises(ValueError, match=message):
+        kfre_2_year(**(valid | arguments))

@@ -25,9 +25,9 @@ def calcium_correction(total_calcium: float, albumin: float, *, rounded: bool = 
     """
     normal_albumin = 4.0
     if total_calcium < 0:
-        raise ValueError("Total calcium must be non-negative")
+        raise ValueError(f"Total calcium must be non-negative: {total_calcium}")
     if albumin < 0:
-        raise ValueError("Albumin must be non-negative")
+        raise ValueError(f"Albumin must be non-negative: {albumin}")
 
     corrected_calcium = total_calcium - albumin + normal_albumin
     return half_up(corrected_calcium, CALCIUM_CORRECTION.digits) if rounded else corrected_calcium

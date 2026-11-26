@@ -20,9 +20,9 @@ class PERCResult:
 
 def _validate_geneva_inputs(age: int, heart_rate: int) -> None:
     if age <= 0:
-        raise ValueError("Age must be positive")
+        raise ValueError(f"Age must be positive: {age}")
     if heart_rate <= 0 or heart_rate > 300:
-        raise ValueError("Heart rate must be between 1 and 300 bpm")
+        raise ValueError(f"Heart rate must be between 1 and 300 bpm: {heart_rate}")
 
 
 def geneva_simplified_score(
@@ -91,9 +91,9 @@ def geneva_simplified_score(
 
 def _check_geneva_score(score: int, maximum: int) -> None:
     if not isinstance(score, int) or isinstance(score, bool):
-        raise TypeError("Geneva score must be an int")
+        raise TypeError(f"Geneva score must be an int: {score!r}")
     if not 0 <= score <= maximum:
-        raise ValueError(f"Geneva score must be between 0 and {maximum}")
+        raise ValueError(f"Geneva score must be between 0 and {maximum}: {score}")
 
 
 def geneva_simplified_category(score: int) -> GenevaRiskLevel:
@@ -267,11 +267,11 @@ def perc_rule(
     PERCResult(positive_criteria=0, positive=False)
     """
     if age <= 0:
-        raise ValueError("Age must be positive")
+        raise ValueError(f"Age must be positive: {age}")
     if heart_rate <= 0 or heart_rate > 300:
-        raise ValueError("Heart rate must be between 1 and 300 bpm")
+        raise ValueError(f"Heart rate must be between 1 and 300 bpm: {heart_rate}")
     if oxygen_saturation <= 0 or oxygen_saturation > 100:
-        raise ValueError("Oxygen saturation must be between 0 and 100%")
+        raise ValueError(f"Oxygen saturation must be between 0 and 100%: {oxygen_saturation}")
 
     criteria = (
         age >= 50,

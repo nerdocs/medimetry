@@ -42,7 +42,18 @@ Verification levels:
   gives the units (ACR in mg/g); the North American baseline survival (0.9750 / 0.9240) against the formula text
   of the LOINC terms 85624-5 and 85625-2, which also states the natural logarithm and male = 1, female = 0.
 - Development of the equation: Tangri N, et al. JAMA. 2011;305(15):1553-1559. doi:10.1001/jama.2011.451. The
-  library implements the pooled, regionally calibrated equations of 2016, not the 2011 equations.
+  library implements the form of 2016 (centering values, baseline survival per region). Its coefficients are not
+  the pooled estimates of Table 2 of the 2016 paper: exp(coefficient) is 0.80 / 1.28 / 0.57 / 1.57 (age, male,
+  eGFR, ln ACR), the pooled hazard ratios are 0.80 / 1.38 / 0.63 / 1.56. The 2016 paper retained the original
+  equation and added a calibration factor for non-North American cohorts.
+- Cross-check of the calibration against the main text of the 2016 paper ("lowered the baseline risk by 32.9% at
+  2 years and 16.5% at 5 years"): ln(0.9832) / ln(0.9750) = 0.669 (33.1% lower), ln(0.9365) / ln(0.9240) = 0.830
+  (17.0% lower). The 2-year value agrees; a 16.5% reduction at 5 years would give 0.9361, not 0.9365. The library
+  keeps 0.9365 as reproduced from eAppendix 2 by Ramspek 2021.
+- Still open: eAppendix 2 itself and the erratum (JAMA. 2016;315(8):822, "Incorrect Version Published") could not
+  be retrieved (2026-11); neither was read.
+- `digits=2` is a convention of this library. Neither the paper nor the LOINC terms (example unit %) state to how
+  many places the risk is reported.
 - Domain: adults with CKD stages 3-5; the functions raise for an eGFR of 60 mL/min/1.73m² or more and below 18
   years. There is no default region.
 - LOINC 85624-5 / 85625-2 ("Kidney failure 2-year / 5-year risk [Likelihood] by KFRE", %): the formula text of

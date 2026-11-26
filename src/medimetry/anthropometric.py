@@ -49,13 +49,13 @@ def bmi(weight: float, height: float, *, rounded: bool = False) -> float:
         ValueError: If weight or height are not positive or plausible
     """
     if weight <= 0:
-        raise ValueError("Weight must be positive")
+        raise ValueError(f"Weight must be positive: {weight}")
     if weight > 300:
-        raise ValueError("Weight must be lower than 300 kilograms")
+        raise ValueError(f"Weight must be lower than 300 kilograms: {weight}")
     if height <= 0:
-        raise ValueError("Height must be positive")
+        raise ValueError(f"Height must be positive: {height}")
     if height > 3:
-        raise ValueError("Height must be lower than 3 meters (did you provide centimeters?)")
+        raise ValueError(f"Height must be lower than 3 meters (did you provide centimeters?): {height}")
     bmi_value = weight / (height**2)
     return half_up(bmi_value, BMI.digits) if rounded else bmi_value
 
@@ -88,9 +88,9 @@ def bmi_from_cm(weight: float, height_cm: float, *, rounded: bool = False) -> fl
         ValueError: If weight or height are not positive or plausible
     """
     if height_cm <= 0:
-        raise ValueError("Height must be positive")
+        raise ValueError(f"Height must be positive: {height_cm}")
     if height_cm <= 10:
-        raise ValueError("Height must be above 10 centimeters (did you provide meters?)")
+        raise ValueError(f"Height must be above 10 centimeters (did you provide meters?): {height_cm}")
 
     height_m = height_cm / 100
     return bmi(weight, height_m, rounded=rounded)
@@ -114,7 +114,7 @@ def bmi_category(bmi_value: float) -> BMICategory:
         ValueError: If BMI value is not positive
     """
     if bmi_value <= 0:
-        raise ValueError("BMI must be positive")
+        raise ValueError(f"BMI must be positive: {bmi_value}")
 
     if bmi_value < 18.5:
         return BMICategory.UNDERWEIGHT
@@ -148,7 +148,7 @@ def bsa_dubois(weight: float, height: float, *, rounded: bool = False) -> float:
         float: BSA in square meters
     """
     if weight <= 0 or height <= 0:
-        raise ValueError("Weight and height must be positive")
+        raise ValueError(f"Weight and height must be positive: weight={weight}, height={height}")
 
     bsa_value = 0.007184 * (weight**0.425) * ((height * 100) ** 0.725)
     return half_up(bsa_value, BSA_DUBOIS.digits) if rounded else bsa_value
@@ -184,7 +184,7 @@ def bsa_mosteller(weight: float, height: float, *, rounded: bool = False) -> flo
         float: BSA in square meters
     """
     if weight <= 0 or height <= 0:
-        raise ValueError("Weight and height must be positive")
+        raise ValueError(f"Weight and height must be positive: weight={weight}, height={height}")
 
     height_cm = height * 100
     bsa_value = math.sqrt((weight * height_cm) / 3600)
@@ -222,7 +222,7 @@ def bsa_haycock(weight: float, height: float, *, rounded: bool = False) -> float
         float: BSA in square meters
     """
     if weight <= 0 or height <= 0:
-        raise ValueError("Weight and height must be positive")
+        raise ValueError(f"Weight and height must be positive: weight={weight}, height={height}")
 
     height_cm = height * 100
     bsa_value = 0.024265 * (weight**0.5378) * (height_cm**0.3964)
@@ -259,7 +259,7 @@ def bsa_gehan_george(weight: float, height: float, *, rounded: bool = False) -> 
         float: BSA in square meters
     """
     if weight <= 0 or height <= 0:
-        raise ValueError("Weight and height must be positive")
+        raise ValueError(f"Weight and height must be positive: weight={weight}, height={height}")
 
     height_cm = height * 100
     bsa_value = 0.0235 * (weight**0.51456) * (height_cm**0.42246)
@@ -296,7 +296,7 @@ def bsa_boyd(weight: float, height: float, *, rounded: bool = False) -> float:
         float: BSA in square meters
     """
     if weight <= 0 or height <= 0:
-        raise ValueError("Weight and height must be positive")
+        raise ValueError(f"Weight and height must be positive: weight={weight}, height={height}")
 
     height_cm = height * 100
     weight_exp = 0.6157 - 0.0188 * math.log10(weight)
@@ -360,7 +360,7 @@ def bsa_from_cm(weight: float, height_cm: float, formula: BSAFormula = BSAFormul
         float: BSA in square meters
     """
     if height_cm <= 0:
-        raise ValueError("Height must be positive")
+        raise ValueError(f"Height must be positive: {height_cm}")
 
     height_m = height_cm / 100
     return bsa(weight, height_m, formula, rounded=rounded)

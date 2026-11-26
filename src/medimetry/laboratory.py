@@ -39,9 +39,9 @@ def zlog(value: float, lower: float, upper: float, *, rounded: bool = False) -> 
     -4.8
     """
     if value <= 0 or lower <= 0:
-        raise ValueError("Value and lower limit must be positive")
+        raise ValueError(f"Value and lower limit must be positive: value={value}, lower={lower}")
     if upper <= lower:
-        raise ValueError("Upper limit must be greater than the lower limit")
+        raise ValueError(f"Upper limit must be greater than the lower limit: upper={upper}, lower={lower}")
 
     log_lower = math.log(lower)
     log_upper = math.log(upper)

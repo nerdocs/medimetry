@@ -32,9 +32,9 @@ def acr(urine_albumin: float, urine_creatinine: float, *, rounded: bool = False)
     300.0
     """
     if not (urine_albumin >= 0):
-        raise ValueError("Urine albumin must not be negative")
+        raise ValueError(f"Urine albumin must not be negative: {urine_albumin}")
     if not (urine_creatinine > 0):
-        raise ValueError("Urine creatinine must be positive")
+        raise ValueError(f"Urine creatinine must be positive: {urine_creatinine}")
 
     value = urine_albumin / urine_creatinine * 1000
     return half_up(value, ACR.digits) if rounded else value
@@ -81,19 +81,19 @@ def cockcroft_gault(
         float: Creatinine clearance in mL/min
     """
     if not (weight > 0):
-        raise ValueError("Weight must be positive")
+        raise ValueError(f"Weight must be positive: {weight}")
     if not (age > 0):
-        raise ValueError("Age must be positive")
+        raise ValueError(f"Age must be positive: {age}")
     if not (creatinine >= 0):
-        raise ValueError("Creatinine must not be negative")
+        raise ValueError(f"Creatinine must not be negative: {creatinine}")
     if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise ValueError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender}")
     check_age(COCKCROFT_GAULT, age)
 
     if weight > 300:
-        raise ValueError("Weight must be lower than 300 kilograms")
+        raise ValueError(f"Weight must be lower than 300 kilograms: {weight}")
     if float(creatinine) == 0.0:
-        raise ValueError("Creatinine must be non-zero")
+        raise ValueError(f"Creatinine must be non-zero: {creatinine}")
     # Base calculation: ((140 - age) * weight) / (72 * creatinine)
     clearance = ((140 - age) * weight) / (72 * creatinine)
 
@@ -140,13 +140,13 @@ def mdrd(creatinine: float, age: float, gender: Gender, race: EthnicalRace = Eth
         float: Estimated GFR in mL/min/1.73m²
     """
     if not (creatinine > 0):
-        raise ValueError("Creatinine must be positive")
+        raise ValueError(f"Creatinine must be positive: {creatinine}")
     if not (age > 0):
-        raise ValueError("Age must be positive")
+        raise ValueError(f"Age must be positive: {age}")
     if not isinstance(gender, Gender):
-        raise TypeError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise TypeError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender!r}")
     if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise ValueError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender}")
     check_age(MDRD, age)
 
     # Base MDRD formula: 175 x (creatinine)^-1.154 x (age)^-0.203
@@ -181,11 +181,11 @@ MDRD = FormulaInfo(
 
 def _check_ckd_epi(creatinine: float, gender: Gender) -> None:
     if not (creatinine > 0):
-        raise ValueError("Creatinine must be positive")
+        raise ValueError(f"Creatinine must be positive: {creatinine}")
     if not isinstance(gender, Gender):
-        raise TypeError("Gender must be of type 'Gender'")
+        raise TypeError(f"Gender must be of type 'Gender': {gender!r}")
     if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise ValueError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender}")
 
 
 def ckd_epi_2021(creatinine: float, age: float, gender: Gender, *, rounded: bool = False) -> float:
@@ -252,7 +252,7 @@ def ckd_epi_2021_cystatin(creatinine: float, cystatin_c: float, age: float, gend
     """
     _check_ckd_epi(creatinine, gender)
     if not (cystatin_c > 0):
-        raise ValueError("Cystatin C must be positive")
+        raise ValueError(f"Cystatin C must be positive: {cystatin_c}")
     check_age(CKD_EPI_2021_CYSTATIN, age)
 
     if gender == Gender.FEMALE:
@@ -390,11 +390,11 @@ def _ekfc_q(age: float, gender: Gender) -> float:
 
 def _check_ekfc(creatinine: float, gender: Gender, info: FormulaInfo, age: float) -> None:
     if not (creatinine > 0):
-        raise ValueError("Creatinine must be positive")
+        raise ValueError(f"Creatinine must be positive: {creatinine}")
     if not isinstance(gender, Gender):
-        raise TypeError("Gender must be of type 'Gender'")
+        raise TypeError(f"Gender must be of type 'Gender': {gender!r}")
     if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise ValueError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender}")
     check_age(info, age)
 
 
@@ -463,7 +463,7 @@ def ekfc_cystatin(creatinine: float, cystatin_c: float, age: float, gender: Gend
     """
     _check_ekfc(creatinine, gender, EKFC_CYSTATIN, age)
     if not (cystatin_c > 0):
-        raise ValueError("Cystatin C must be positive")
+        raise ValueError(f"Cystatin C must be positive: {cystatin_c}")
     egfr_cr = _ekfc(creatinine * 88.4 / _ekfc_q(age, gender), age)
     q_cys = 0.83 if age < 50 else 0.83 + 0.005 * (age - 50)
     egfr = (egfr_cr + _ekfc(cystatin_c / q_cys, age)) / 2
@@ -505,17 +505,17 @@ def _kfre(
 ) -> float:
     """4-variable KFRE in percent: 100 x (1 - S0^exp(L)), S0 the baseline survival of ``region``."""
     if not isinstance(gender, Gender):
-        raise TypeError("Gender must be of type 'Gender'")
+        raise TypeError(f"Gender must be of type 'Gender': {gender!r}")
     if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise ValueError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender}")
     if not isinstance(region, KfreRegion):
-        raise TypeError("Region must be of type 'KfreRegion'")
+        raise TypeError(f"Region must be of type 'KfreRegion': {region!r}")
     if not (0 < egfr < 60):
         raise ValueError(f"{info.name} is only defined for an eGFR below 60 mL/min/1.73m² (and above 0): {egfr}")
     if not (acr > 0):
-        raise ValueError("ACR must be positive")
+        raise ValueError(f"ACR must be positive: {acr}")
     if not (age > 0):
-        raise ValueError("Age must be positive")
+        raise ValueError(f"Age must be positive: {age}")
     check_age(info, age)
 
     male = 1 if gender == Gender.MALE else 0
@@ -534,8 +534,9 @@ def kfre_2_year(egfr: float, acr: float, age: float, gender: Gender, region: Kfr
     L = -0.2201 x (age/10 - 7.036) + 0.2467 x (male - 0.5642) - 0.5567 x (eGFR/5 - 7.222) + 0.4510 x (ln(ACR) - 5.137)
 
     male = 1 for men and 0 for women; S0 (2 years) = 0.9750 for North America and 0.9832 for all other regions.
-    These are the pooled equations of Tangri et al. (2016), which recalibrated the equation developed in two
-    Canadian cohorts (Tangri et al., 2011) in 31 cohorts from 30 countries. There is no default region.
+    This is the equation developed in two Canadian cohorts (Tangri et al., 2011) in the form given by Tangri et al.
+    (2016), who validated it in 31 cohorts from 30 countries, kept its coefficients and added a calibration of the
+    baseline survival for cohorts outside North America. There is no default region.
 
     Kidney failure is treatment by dialysis or kidney transplantation. The equations were developed and validated
     in adults with CKD stages 3-5 (eGFR < 60 mL/min/1.73m²); outside that domain the function raises. The cohorts

@@ -60,11 +60,11 @@ def child_pugh_score(
     5
     """
     if bilirubin < 0:
-        raise ValueError("Bilirubin must be non-negative")
+        raise ValueError(f"Bilirubin must be non-negative: {bilirubin}")
     if albumin < 0:
-        raise ValueError("Albumin must be non-negative")
+        raise ValueError(f"Albumin must be non-negative: {albumin}")
     if inr < 0:
-        raise ValueError("INR must be non-negative")
+        raise ValueError(f"INR must be non-negative: {inr}")
 
     if not isinstance(ascites, AscitesSeverity):
         raise ValueError(f"Unsupported ascites severity: {ascites}")
@@ -138,9 +138,9 @@ def child_pugh_category(score: int) -> ChildPughGrade:
     <ChildPughGrade.B: 'B'>
     """
     if not isinstance(score, int) or isinstance(score, bool):
-        raise TypeError("Child-Pugh score must be an int")
+        raise TypeError(f"Child-Pugh score must be an int: {score!r}")
     if not 5 <= score <= 15:
-        raise ValueError("Child-Pugh score must be between 5 and 15")
+        raise ValueError(f"Child-Pugh score must be between 5 and 15: {score}")
     if score <= 6:
         return ChildPughGrade.A
     if score <= 9:

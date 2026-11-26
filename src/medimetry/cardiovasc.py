@@ -31,11 +31,11 @@ def mean_arterial_pressure(systolic: float, diastolic: float, *, rounded: bool =
         is not lower than systolic.
     """
     if systolic <= 0:
-        raise ValueError("Systolic pressure must be positive")
+        raise ValueError(f"Systolic pressure must be positive: {systolic}")
     if diastolic <= 0:
-        raise ValueError("Diastolic pressure must be positive")
+        raise ValueError(f"Diastolic pressure must be positive: {diastolic}")
     if diastolic >= systolic:
-        raise ValueError("Diastolic pressure must be lower than systolic pressure")
+        raise ValueError(f"Diastolic pressure must be lower than systolic pressure: diastolic={diastolic}, systolic={systolic}")
 
     value = (2 * diastolic + systolic) / 3
     return half_up(value, MEAN_ARTERIAL_PRESSURE.digits) if rounded else value
@@ -84,9 +84,9 @@ def chads_vasc_score(
         int: CHA2DS2-VASc score (0-9)
     """
     if age <= 0:
-        raise ValueError("Age must be positive")
+        raise ValueError(f"Age must be positive: {age}")
     if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise ValueError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender}")
 
     score = 0
 
@@ -159,17 +159,19 @@ def framingham_score(
     13
     """
     if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise ValueError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender}")
     if not 30 <= age <= 79:
-        raise ValueError("Age must be between 30 and 79 years")
+        raise ValueError(f"Age must be between 30 and 79 years: {age}")
     if total_cholesterol < 0:
-        raise ValueError("Total cholesterol must be non-negative")
+        raise ValueError(f"Total cholesterol must be non-negative: {total_cholesterol}")
     if hdl_cholesterol < 0:
-        raise ValueError("HDL cholesterol must be non-negative")
+        raise ValueError(f"HDL cholesterol must be non-negative: {hdl_cholesterol}")
     if systolic_bp < 0:
-        raise ValueError("Systolic BP must be non-negative")
+        raise ValueError(f"Systolic BP must be non-negative: {systolic_bp}")
     if hdl_cholesterol >= total_cholesterol:
-        raise ValueError("HDL cholesterol must be lower than total cholesterol")
+        raise ValueError(
+            f"HDL cholesterol must be lower than total cholesterol: hdl_cholesterol={hdl_cholesterol}, total_cholesterol={total_cholesterol}"
+        )
     if hdl_cholesterol > 10:
         raise ValueError(f"HDL cholesterol ({hdl_cholesterol}) is implausible high. Did you provide mg/dl instead of mmol/l?")
     if total_cholesterol > 30:
@@ -314,9 +316,9 @@ def framingham_risk(points: int, gender: Gender) -> float:
     10.0
     """
     if not isinstance(points, int) or isinstance(points, bool):
-        raise TypeError("Framingham points must be an int")
+        raise TypeError(f"Framingham points must be an int: {points!r}")
     if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise ValueError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender}")
 
     # hint: 0.999 means "<1", 30 means ">30"
     if gender == Gender.MALE:
@@ -404,7 +406,7 @@ def framingham_category(risk_percentage: float) -> FraminghamRiskLevel:
     <FraminghamRiskLevel.INTERMEDIATE: 'intermediate'>
     """
     if not 0 <= risk_percentage <= 100:
-        raise ValueError("Risk percentage must be between 0 and 100")
+        raise ValueError(f"Risk percentage must be between 0 and 100: {risk_percentage}")
     if risk_percentage < 10:
         return FraminghamRiskLevel.LOW
     if risk_percentage < 20:

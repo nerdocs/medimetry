@@ -195,17 +195,17 @@ def _lms_value(z: float, l: float, m: float, s: float) -> float:  # noqa: E741
 
 def _validate(indicator: GrowthIndicator, gender: Gender, reference: GrowthReference) -> None:
     if not isinstance(indicator, GrowthIndicator):
-        raise TypeError("indicator must be a GrowthIndicator")
+        raise TypeError(f"indicator must be a GrowthIndicator: {indicator!r}")
     if not isinstance(reference, GrowthReference):
-        raise TypeError("reference must be a GrowthReference")
+        raise TypeError(f"reference must be a GrowthReference: {reference!r}")
     if gender not in (Gender.MALE, Gender.FEMALE):
-        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+        raise ValueError(f"Gender must be Gender.MALE or Gender.FEMALE: {gender}")
 
 
 def _key(indicator: GrowthIndicator, age_days: float | None, length_cm: float | None) -> float:
     """Pick the table key from the mutually exclusive age_days / length_cm arguments."""
     if (age_days is None) == (length_cm is None):
-        raise ValueError("Exactly one of age_days or length_cm must be given")
+        raise ValueError(f"Exactly one of age_days or length_cm must be given: age_days={age_days}, length_cm={length_cm}")
     if indicator in _LENGTH_KEYED:
         if length_cm is None:
             raise ValueError(f"{indicator.name} is keyed by length_cm, not age_days")
@@ -226,7 +226,7 @@ def _zscore(
 ) -> float:
     _validate(indicator, gender, reference)
     if value <= 0:
-        raise ValueError("Measured value must be positive")
+        raise ValueError(f"Measured value must be positive: {value}")
     key = _key(indicator, age_days, length_cm)
     keys, lms = _load_table(reference, indicator, gender, data_dir)
     return _lms_zscore(value, *_lms_at(keys, lms, key))
@@ -234,7 +234,7 @@ def _zscore(
 
 def _percentile_z(percentile: float) -> float:
     if not 0 < percentile < 100:
-        raise ValueError("Percentile must be between 0 and 100 (exclusive)")
+        raise ValueError(f"Percentile must be between 0 and 100 (exclusive): {percentile}")
     return NormalDist().inv_cdf(percentile / 100)
 
 
@@ -426,9 +426,9 @@ def growth_curves(
     """
     _validate(indicator, gender, reference)
     if not isinstance(age_unit, AgeUnit):
-        raise TypeError("age_unit must be an AgeUnit")
+        raise TypeError(f"age_unit must be an AgeUnit: {age_unit!r}")
     if step is not None and step <= 0:
-        raise ValueError("step must be positive")
+        raise ValueError(f"step must be positive: {step}")
     percentiles = [float(p) for p in percentiles]
     z_values = {p: _percentile_z(p) for p in percentiles}
 
