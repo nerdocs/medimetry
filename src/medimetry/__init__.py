@@ -7,7 +7,8 @@ monitoring, prediction, prognosis, treatment or alleviation of disease. See DISC
 
 from medimetry.constants import EthnicalRace
 from medimetry.constants import Gender
+from medimetry.constants import KfreRegion
 from medimetry.constants import QtcCorrectionType
 
-__all__ = ["EthnicalRace", "Gender", "QtcCorrectionType"]
+__all__ = ["EthnicalRace", "Gender", "KfreRegion", "QtcCorrectionType"]
 __version__ = "0.3.0"

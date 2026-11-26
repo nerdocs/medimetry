@@ -5,6 +5,7 @@ from medimetry._formula import check_age
 from medimetry._formula import half_up
 from medimetry.constants import EthnicalRace
 from medimetry.constants import Gender
+from medimetry.constants import KfreRegion
 
 
 def acr(urine_albumin: float, urine_creatinine: float, *, rounded: bool = False) -> float:
@@ -491,6 +492,138 @@ EKFC_CYSTATIN = FormulaInfo(
     digits=1,
     citation="Pottel H, et al. N Engl J Med. 2023;388(4):333-343. doi:10.1056/NEJMoa2203769",
     min_age=2,
+)
+
+
+# Baseline survival of the 4-variable KFRE per region (Tangri 2016, eAppendix 2)
+_KFRE_SURVIVAL_2_YEAR = {KfreRegion.NORTH_AMERICA: 0.9750, KfreRegion.NON_NORTH_AMERICA: 0.9832}
+_KFRE_SURVIVAL_5_YEAR = {KfreRegion.NORTH_AMERICA: 0.9240, KfreRegion.NON_NORTH_AMERICA: 0.9365}
+
+
+def _kfre(
+    egfr: float, acr: float, age: float, gender: Gender, region: KfreRegion, survival: dict[KfreRegion, float], info: FormulaInfo
+) -> float:
+    """4-variable KFRE in percent: 100 x (1 - S0^exp(L)), S0 the baseline survival of ``region``."""
+    if not isinstance(gender, Gender):
+        raise TypeError("Gender must be of type 'Gender'")
+    if gender not in (Gender.MALE, Gender.FEMALE):
+        raise ValueError("Gender must be Gender.MALE or Gender.FEMALE")
+    if not isinstance(region, KfreRegion):
+        raise TypeError("Region must be of type 'KfreRegion'")
+    if not (0 < egfr < 60):
+        raise ValueError(f"{info.name} is only defined for an eGFR below 60 mL/min/1.73m² (and above 0): {egfr}")
+    if not (acr > 0):
+        raise ValueError("ACR must be positive")
+    if not (age > 0):
+        raise ValueError("Age must be positive")
+    check_age(info, age)
+
+    male = 1 if gender == Gender.MALE else 0
+    linear_predictor = (
+        -0.2201 * (age / 10 - 7.036) + 0.2467 * (male - 0.5642) - 0.5567 * (egfr / 5 - 7.222) + 0.4510 * (math.log(acr) - 5.137)
+    )
+    return 100 * (1 - survival[region] ** math.exp(linear_predictor))
+
+
+def kfre_2_year(egfr: float, acr: float, age: float, gender: Gender, region: KfreRegion, *, rounded: bool = False) -> float:
+    """
+    Calculate the 2-year risk of kidney failure using the 4-variable Kidney Failure Risk Equation (KFRE).
+
+    risk = 1 - S0^exp(L), with
+
+    L = -0.2201 x (age/10 - 7.036) + 0.2467 x (male - 0.5642) - 0.5567 x (eGFR/5 - 7.222) + 0.4510 x (ln(ACR) - 5.137)
+
+    male = 1 for men and 0 for women; S0 (2 years) = 0.9750 for North America and 0.9832 for all other regions.
+    These are the pooled equations of Tangri et al. (2016), which recalibrated the equation developed in two
+    Canadian cohorts (Tangri et al., 2011) in 31 cohorts from 30 countries. There is no default region.
+
+    Kidney failure is treatment by dialysis or kidney transplantation. The equations were developed and validated
+    in adults with CKD stages 3-5 (eGFR < 60 mL/min/1.73m²); outside that domain the function raises. The cohorts
+    estimated GFR with the CKD-EPI 2009 creatinine equation. 5-year risk: ``kfre_5_year``.
+
+    References:
+        Tangri N, et al. Multinational Assessment of Accuracy of Equations for Predicting Risk of Kidney
+        Failure: A Meta-analysis. JAMA. 2016;315(2):164-174. doi:10.1001/jama.2015.18202 (eAppendix 2)
+
+        Tangri N, et al. A predictive model for progression of chronic kidney disease to kidney failure.
+        JAMA. 2011;305(15):1553-1559. doi:10.1001/jama.2011.451
+
+    Args:
+        egfr (float): Estimated GFR in mL/min/1.73m²
+        acr (float): Urine albumin-to-creatinine ratio in mg/g (as returned by ``acr``)
+        age (float): Age in years
+        gender (Gender): Gender.MALE or Gender.FEMALE
+        region (KfreRegion): KfreRegion.NORTH_AMERICA or KfreRegion.NON_NORTH_AMERICA
+        rounded (bool): Round to ``KFRE_2_YEAR.digits`` places (half up)
+
+    Returns:
+        float: 2-year risk of kidney failure in percent
+
+    >>> kfre_2_year(egfr=30, acr=300, age=65, gender=Gender.MALE, region=KfreRegion.NON_NORTH_AMERICA, rounded=True)
+    5.27
+    """
+    risk = _kfre(egfr, acr, age, gender, region, _KFRE_SURVIVAL_2_YEAR, KFRE_2_YEAR)
+    return half_up(risk, KFRE_2_YEAR.digits) if rounded else risk
+
+
+def kfre_5_year(egfr: float, acr: float, age: float, gender: Gender, region: KfreRegion, *, rounded: bool = False) -> float:
+    """
+    Calculate the 5-year risk of kidney failure using the 4-variable Kidney Failure Risk Equation (KFRE).
+
+    The linear predictor L, the domain and the arguments are those of ``kfre_2_year``; the baseline survival
+    S0 (5 years) is 0.9240 for North America and 0.9365 for all other regions.
+
+    References:
+        Tangri N, et al. Multinational Assessment of Accuracy of Equations for Predicting Risk of Kidney
+        Failure: A Meta-analysis. JAMA. 2016;315(2):164-174. doi:10.1001/jama.2015.18202 (eAppendix 2)
+
+        Tangri N, et al. A predictive model for progression of chronic kidney disease to kidney failure.
+        JAMA. 2011;305(15):1553-1559. doi:10.1001/jama.2011.451
+
+    Args:
+        egfr (float): Estimated GFR in mL/min/1.73m²
+        acr (float): Urine albumin-to-creatinine ratio in mg/g (as returned by ``acr``)
+        age (float): Age in years
+        gender (Gender): Gender.MALE or Gender.FEMALE
+        region (KfreRegion): KfreRegion.NORTH_AMERICA or KfreRegion.NON_NORTH_AMERICA
+        rounded (bool): Round to ``KFRE_5_YEAR.digits`` places (half up)
+
+    Returns:
+        float: 5-year risk of kidney failure in percent
+
+    >>> kfre_5_year(egfr=30, acr=300, age=65, gender=Gender.MALE, region=KfreRegion.NON_NORTH_AMERICA, rounded=True)
+    18.91
+    """
+    risk = _kfre(egfr, acr, age, gender, region, _KFRE_SURVIVAL_5_YEAR, KFRE_5_YEAR)
+    return half_up(risk, KFRE_5_YEAR.digits) if rounded else risk
+
+
+_KFRE_CITATION = "Tangri N, et al. JAMA. 2016;315(2):164-174. doi:10.1001/jama.2015.18202"
+
+KFRE_2_YEAR = FormulaInfo(
+    id="kfre_2_year",
+    name="Kidney failure 2-year risk (KFRE, 4 variables)",
+    function=kfre_2_year,
+    unit="%",
+    inputs={"egfr": EGFR_UNIT, "acr": "mg/g"},
+    input_loinc={"acr": "9318-7"},
+    digits=2,
+    citation=_KFRE_CITATION,
+    loinc="85624-5",
+    min_age=18,
+)
+
+KFRE_5_YEAR = FormulaInfo(
+    id="kfre_5_year",
+    name="Kidney failure 5-year risk (KFRE, 4 variables)",
+    function=kfre_5_year,
+    unit="%",
+    inputs={"egfr": EGFR_UNIT, "acr": "mg/g"},
+    input_loinc={"acr": "9318-7"},
+    digits=2,
+    citation=_KFRE_CITATION,
+    loinc="85625-2",
+    min_age=18,
 )
 
 

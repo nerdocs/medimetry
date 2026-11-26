@@ -63,6 +63,7 @@ See [Contributing](CONTRIBUTING.md).
 |                                                     | ✅ | EKFC GFR Equation                             |
 |                                                     | ✅ | MDRD GFR Equation                             |
 |                                                     | ✅ | CKD Staging                                   |
+|                                                     | ✅ | Kidney Failure Risk Equation (KFRE, 4-var.)   |
 |                                                     |   | Fractional Excretion of Sodium (FENa)         |
 | Laboratory (**laboratory**)                         | ✅ | zlog Value                                    |
 | Electrolytes (**lytes**)                            |   | Sodium Correction for Hyperglycemia           |

@@ -33,6 +33,24 @@ Verification levels:
   The tests check the single formula against the sex- and creatinine-specific forms of Table 2 (144 / 141, 166 / 163
   for Black patients); the full text was not re-checked when this entry was written.
 
+### `kfre_2_year`, `kfre_5_year`
+
+- Tangri N, et al. JAMA. 2016;315(2):164-174. doi:10.1001/jama.2015.18202, eAppendix 2 (**secondary**). The
+  supplement was not accessible. Coefficients, centering values and the non-North American baseline survival
+  (0.9832 / 0.9365) were checked against the verbatim reproduction "as provided in the KFRE eAppendix 2" in the
+  supplement of Ramspek CL, et al. J Am Soc Nephrol. 2021;32(5). doi:10.1681/ASN.2020071077, which also
+  gives the units (ACR in mg/g); the North American baseline survival (0.9750 / 0.9240) against the formula text
+  of the LOINC terms 85624-5 and 85625-2, which also states the natural logarithm and male = 1, female = 0.
+- Development of the equation: Tangri N, et al. JAMA. 2011;305(15):1553-1559. doi:10.1001/jama.2011.451. The
+  library implements the pooled, regionally calibrated equations of 2016, not the 2011 equations.
+- Domain: adults with CKD stages 3-5; the functions raise for an eGFR of 60 mL/min/1.73m² or more and below 18
+  years. There is no default region.
+- LOINC 85624-5 / 85625-2 ("Kidney failure 2-year / 5-year risk [Likelihood] by KFRE", %): the formula text of
+  the terms shows the North American baseline survival. The library gives the same codes for either region; a
+  consumer has to store the region beside the value.
+- Only the 4-variable equation is implemented. The 8-variable equation (albumin, phosphate, bicarbonate,
+  calcium) is left out until its North American baseline survival is verified: secondary sources disagree.
+
 ## Laboratory (`laboratory.py`)
 
 ### `zlog`
